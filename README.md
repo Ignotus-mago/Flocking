@@ -1,6 +1,7 @@
 # Flocking
 
 Examples of boids that draw, some driven by video optical flow.
+Examples all save drawings to Adobe Illustrator 7.0 format using IgnoCodeLib.
 Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
 Demonstration of Craig Reynolds' "Flocking" behavior, See: http://www.red3d.com/cwr/.
 Original optical flow code by Hidetoshi Shimodaira shimo@is.titech.ac.jp.
