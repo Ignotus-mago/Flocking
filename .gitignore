@@ -1,0 +1,6 @@
+
+*.svn-base
+bin
+.project
+.settings
+.classpath
