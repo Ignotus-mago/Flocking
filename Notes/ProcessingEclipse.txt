@@ -1,0 +1,44 @@
+A Processing PApplet in Eclipse
+
+In Eclipse, you can run Processing code but it requires some adjustments. 
+
+
+import processing.core.PApplet;
+
+
+public class PlanarSymmetry extends PApplet {
+
+	public void setup() {
+		
+	}
+	
+	public void draw() {
+		
+	}
+	
+	public static void main(String args[]) {
+		PApplet.main(new String[] { "--present", "PlanarSymmetry" });
+	}
+
+}
+
+
+To go back the other way, from Eclipse to Processing:
+
+Paste the source into BBEdit. TextWrangler, or your favorite editor. Specify that it is 
+Java source (popup at bottom of BBEdit or TextWrangler window).
+
+Delete last curly bracket.
+Delete line with class header and bracket ("public class Tracker03 extends PApplet {").
+Delete "import processing.core.*;".
+Delete "main" method.
+	public static void main(String args[]) {
+		PApplet.main(new String[] { "--present", "Tracker00" });
+	}
+Select all text.
+Shift it left (with Text menu or "command=[");
+With text still selected, choose "Detab..." from the text menu. Replace tabs with 2 spaces (standard in Processing).
+Copy and paste into a Processing window. 
+
+There may be a few other edits, depending on your code, but this is the basic pattern to follow.
+
