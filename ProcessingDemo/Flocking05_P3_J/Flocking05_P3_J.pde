@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import net.paulhertz.geom.GeomUtils;
 import net.paulhertz.util.RandUtil;
-import com.ignofactory.steering.*;
 import net.paulhertz.aifile.*;
 import controlP5.*;
 import processing.video.*;
@@ -15,8 +14,8 @@ import processing.video.*;
 
 /**
 * @author paulhz
-* TODO Using Processing 2, but this will change to 3.x. 
-*
+* Runs in Processing 3.x. 
+* 
 * Sixth version of flocking application. 
 * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
 * Demonstration of Craig Reynolds' "Flocking" behavior, See: http://www.red3d.com/cwr/.
@@ -224,10 +223,6 @@ public void setup() {
   igno = new IgnoCodeLib(this);
 }
 
-public boolean sketchFullScreen() {
-  return false;
-}
-
 /**
  * @param w          width of video capture
  * @param h          height of video capture
@@ -250,6 +245,7 @@ public void setupVideo(int w, int h, int fps, int grid, float timespan, String d
   optical.setResponder(videoResponder);
   isVideoReady = true;
 }
+
 
 /**
  * @return   a list of attached video devices and information about each
@@ -590,8 +586,6 @@ public void draw() {
       println("width = "+ width +", height = "+ height);
       println("pg.width = "+ pg.width +", pg.height = "+ pg.height);
     }
-    // can only call noSmooth() in setup() in Processing 3.x
-    // noSmooth();
     image(glitchImage, 0, 0, width, height);
     smooth();
   }
@@ -1837,23 +1831,18 @@ class VideoResponder implements VideoCallbackINF {
   PVector btn3 = new PVector(width - inset, height - inset);
   PVector btn4 = new PVector(width - inset, inset);
   
-  @Override
+  //@Override
   public void videoCallback(Capture video) {
     // get the video image, give it an alpha channel and draw it on our display
     background(pg);
     PImage img = loadImageAlpha(video.get(), 127);
-    // we love pixels, but can only call noSmooth() in setup() in Processing 3.x
+    // we love pixels but can't use noSMooth() outside setup in Processing 3.x
     // noSmooth();
     image(img, 0, 0, width, height);
     smooth();
   }
 
-  @Override
-  public void vectorCallback(Capture video) {
-    drawVectorLines();
-  }
-  
-  @Override
+  //@Override
   public void actionCallback(Capture video) {
     if (skipAction) return;
     // trigger call to setSeparation() by setting the number box, avoid recursion
@@ -1901,6 +1890,11 @@ class VideoResponder implements VideoCallbackINF {
       }
     }
     adjustFlock();
+  }
+  
+  //@Override
+  public void vectorCallback(Capture video) {
+    drawVectorLines();
   }
   
   public void markGrid(int x, int y, int fillColor) {

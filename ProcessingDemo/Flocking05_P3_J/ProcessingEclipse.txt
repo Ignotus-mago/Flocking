@@ -1,0 +1,174 @@
+Running a Processing PApplet in Eclipse
+---------------------------------------
+
+In Eclipse, you can run Processing code but it requires some adjustments: an import statement and a main method. You will also need to set up the Eclipse buildpath so that it can find processing.core and other Processing libraries. See https://github.com/processing/processing-library-template for more information. 
+
+
+import processing.core.PApplet;
+
+
+public class PlanarSymmetry extends PApplet {
+
+	public void setup() {
+		
+	}
+	
+	public void draw() {
+		
+	}
+	
+	public static void main(String args[]) {
+		PApplet.main(new String[] { "--present", "PlanarSymmetry" });
+	}
+
+}
+
+
+Porting a PApplet from Eclipse to Processing
+-------------------------------------------- 
+
+To go back the other way, from Eclipse to Processing:
+
+Paste the source into BBEdit. TextWrangler, or your favorite editor. Specify that it is 
+Java source (popup at bottom of BBEdit or TextWrangler window).
+
+Delete last curly bracket.
+Delete line with class header and bracket ("public class Tracker03 extends PApplet {").
+Delete "import processing.core.*;" and other processing references. 
+Delete "main" method.
+	public static void main(String args[]) {
+		PApplet.main(new String[] { "--present", "Tracker00" });
+	}
+Select all text.
+Shift it left (with Text menu or "command=[");
+With text still selected, choose "Detab..." from the text menu. Replace tabs with 2 spaces (standard in Processing).
+Copy and paste into a Processing window. 
+
+There may be a few other edits, depending on your code, but this is the basic pattern to follow.
+
+Among the edits to consider:
+
+Delete "this." references in the top-level PApplet code. 
+
+If you use Java enums, save them to a separate .java file. You can do this in Processing: just open a new tab, cut and paste the enum into the tab and save it as <enum_name>.java.
+
+The compiler may catch other problems. It may even suggest ways to fix them.
+
+
+Porting Multiple Java Files to Processing
+----------------------------------------- 
+
+If you are using other Java files in addition to the main PApplet file, your path is more complicated. Here are three ways to convert the additional.java files:
+
+1. Copy .java files to .pde (Processing) files in Processing tabs
+
+Copy each of the files into a new Processing tab.  Delete or quote out package headers for the file. Delete or quote out processing.core imports, if you use them. 
+
+Save the file with its class name only--it will be saved as a .pde (Processing) file and will in effect be a subclass of the main PApplet. 
+
+This will only work in fairly simple cases. If you are using static variables in your classes or if you are passing a PApplet reference to the constructors in your classes, I suggest you consider for one of the other methods, though you could edit out static references and write new constructors.
+
+2. Copy .java files to .java files in Processing tabs
+
+Copy each of the files into a new Processing tab.  Delete or quote out package headers for the file. 
+
+Save the file with its class name and a .java extension. It will be a Java file and separate from the main PApplet code. The file will be at the same (top) level as the main PApplet, so it will be visible to the PApplet.
+
+This will only work in most cases. It has the advantage of making your code visible in the Processing development environment (PDE). It has a few disadvantages. You can end up with lots of tabs, and you will lose all the advantages of the package header. Packages help isolate code and prevent namespace collisions. If you want to maintain package stucture, use solution 3.
+
+3. Compile .java files to a .jar file visible to the main Processing PApplet
+
+This is a complicated solution, but it has its advantages. It is a very versatile solution, since you can use the resulting .jar file in other applications or distribute it with your PApplet code. The primary drawback is that you will need to edit the .java files in the file hierarchy separately from the Processing (.pde) files. 
+
+I describe how to do this for my Flocking05 PApplet in a separate file, compile.txt, which I have copied below. 
+
+
+///// copied from compile.txt /////
+
+The sample code you have downloaded already includes a steering.jar file, so you don't need to compile anything to get Flocking05.pde to run. However, if you are curious, here's how the steering.jar file was created. It's a useful technique for working with Java files. I'm documenting how it works in MacOS, but it should be just about the same in any Linux terminal. 
+
+COMPILING JAVA FILES FOR PROCESSING
+
+In the MacOS Terminal application, which provides you with a Unix command line prompt, you can compile java files with the "javac" command and compress them into a .jar file with the "jar" command. 
+
+The Java files you want to compile should all be in a directory structure identical to the package structure you use in the heading of each file. If you files belong to "package com.ignofactory.steering," then you'll need to have your files located in nested folders "com," "ignofactory" and "steering." If you're not using a package directive in your files (it's a good practice, but you can get away without using it if your classes don't conflict with other class names in Processing or in the libraries you are loading), any directory will do. 
+
+It's handy to put your files or directory hierarchy into the "code" folder in the Processing applet that will use them. Create the folder if it doesn't exist, with the name all in lower case. I'll refer to this folder from here on, just substitute whatever folder you directories/files are in.
+
+The Terminal application is located in the /Applications/Utilities directory. Launch it and you will see welcome message a prompt like this:
+
+Last login: Fri Mar 16 14:59:37 on console
+azafran:~ paulhz$ 
+
+After the prompt, type "cd" and a space, then in the Finder drag the "code" folder into the Terminal window. You should see "cd " followed by the full path to the "code" folder. Hit the return key.
+
+Verbena:~ paulhz$ cd /Users/paulhz/Documents/Processing/my_examples/Flocking/Flocking05/code 
+Verbena:code paulhz$
+
+The prompt will change to indicate that you are now in the "code" folder. 
+
+The "javac" command compiles Java code. If you are using libraries that "javac" isn't set up to find, such as the Processing "core.jar" library, you will need to tell it how to find them using the "-classpath" command line option. You can enter the libary locations with the same drag-and-drop trick used the "cd" command above. Just be sure that each entry on the path is separated by a colon (:), with no spaces, as below. The last entry on the "javac" command line should be the files you want to compile. Here I've used the "*" wild card character to indicate that I want to compile all java files in "com/ignofactory/steering/."
+
+Verbena:code paulhz$ javac -classpath /Users/paulhz/Documents/Processing/libraries/IgnoCodeLib/library/IgnoCodeLib.jar:/Applications/Processing.app/Contents/Java/core.jar:/Applications/Processing.app/Contents/Java/modes/java/libraries/video/library/video.jar com/ignofactory/steering/*.java
+
+If you don't get any errors, you can compress all the files into a .jar file for Processing. If you get an error, it's time to fix your code. Hopefully, the error message will suggest a rememdy.
+
+Verbena:code paulhz$ jar -cf steering.jar com/ignofactory/steering/*.class
+
+This command will create a "steering.jar" file in your "code" folder. At this point, you can import Java classes from com.ignofactory.steering in your Processing applet. 
+
+This technique will work with any Java files. For more information on the "javac" and "jar" commands, type "man javac" or "man jar" at the prompt in the Terminal. 
+
+USING A SHELL SCRIPT
+
+You can also put the commands into a shell script. In a text editor (TextEdit, TextWrangler, etc.) enter the following, one command to a line, with no line breaks in the command:
+
+#!/bin/sh
+
+javac -classpath /Users/paulhz/Documents/Processing/libraries/IgnoCodeLib/library/IgnoCodeLib.jar:/Applications/Processing.app/Contents/Java/core.jar:/Applications/Processing.app/Contents/Java/modes/java/libraries/video/library/video.jar com/ignofactory/steering/*.java
+jar -cf steering.jar com/ignofactory/steering/*.class
+ 
+Save the text as, for example, "compile.sh" in the "code" directory. The file will have to be executable. To make it executable, in the Terminal, enter:
+
+Verbena:code paulhz$ chmod 755 compile.sh
+
+To run the file, enter:
+
+Verbena:code paulhz$ ./compile.sh
+
+Note the "./" before the file name. Note also that the .sh file has to be in the right location, i.e., the same directory as the top directory in your package hierarchy, to function correctly. Here's what the sample code hirerachy looks like:
+
+
+Flocking05:
+	BoidPlacement.java
+	clouds.jpg
+	code:
+		com:
+			ignofactory:
+				steering:
+					Boid.class
+					Boid.java
+					BoidCallbackINF.class
+					BoidCallbackINF.java
+					Flock.class
+					Flock.java
+					OpticalFlower.class
+					OpticalFlower.java
+					OpticalFlowMaker.class
+					OpticalFlowMaker.java
+					OpticalFlowReader.class
+					OpticalFlowReader.java
+					TurtleBoid.class
+					TurtleBoid.java
+					VideoCallbackINF.class
+					VideoCallbackINF.java
+		compile.sh
+		compile.txt
+		steering.jar
+	data:
+		blue28658.txt
+	Flocking05.pde
+	sketch.properties
+	watermelon.jpg
+
+///// end of copy from compile.txt /////

@@ -4,4 +4,7 @@ There are several ways to do this. In this demo, I have compiled my .java classe
 
 For more information, see the document ProcessingEclipse.txt or compile.txt in the code folder. 
 
-Currently runs in Processing 2.2.1. I have not tested Processing 3.x, but it will probably run with a few tweaks to remove deprecated or obsolete code. 
+Currently runs in Processing 2.2.1. Code/steering.jar was compiled for Processing 2 and will not run in 3. 
+
+Requires IgnoCodeLib (see https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/).
+ 

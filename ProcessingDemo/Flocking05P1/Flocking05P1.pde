@@ -7,7 +7,6 @@ import net.paulhertz.geom.GeomUtils;
 import net.paulhertz.util.RandUtil;
 import net.paulhertz.aifile.*;
 import controlP5.*;
-// import processing.core.*;
 import processing.video.*;
 
 /*****  code ported from Eclipse IDE using Java classes in tabs. See README for more information.  *****/
@@ -15,7 +14,7 @@ import processing.video.*;
 
 /**
 * @author paulhz
-* TODO Using Processing 2, but this will change to 3.x.  
+* Runs in Processing 2 and 3.  
 * 
 * Sixth version of flocking application. 
 * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
@@ -23,7 +22,6 @@ import processing.video.*;
 * Rules: Cohesion, Separation, Alignment
 * 
 * Requires IgnoCodeLib (see https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/).
-* Runs in the Eclipse IDE, but can be modified to run in Processing. 
 * 
 * Implements video tracking. You will probably need to tweak video for your particular setup. 
 * The call "setupVideo(videoWidth, videoHeight, 30, 8, 0.25f, "FaceTime HD Camera");" in setup 
@@ -224,10 +222,6 @@ public void setup() {
   glitchImage = loadImageAlpha(glitchImage, 127);
   igno = new IgnoCodeLib(this);
 }
-
-//public boolean sketchFullScreen() {
-//  return false;
-//}
 
 /**
  * @param w          width of video capture
@@ -592,7 +586,8 @@ public void draw() {
       println("width = "+ width +", height = "+ height);
       println("pg.width = "+ pg.width +", pg.height = "+ pg.height);
     }
-    noSmooth();
+    // can only call noSmooth() in setup() in Processing 3.x
+    // noSmooth();
     image(glitchImage, 0, 0, width, height);
     smooth();
   }
@@ -1843,8 +1838,8 @@ class VideoResponder implements VideoCallbackINF {
     // get the video image, give it an alpha channel and draw it on our display
     background(pg);
     PImage img = loadImageAlpha(video.get(), 127);
-    // we love pixels
-    noSmooth();
+    // we love pixels, but can only call noSmooth() in setup() in Processing 3.x
+    // noSmooth();
     image(img, 0, 0, width, height);
     smooth();
   }
