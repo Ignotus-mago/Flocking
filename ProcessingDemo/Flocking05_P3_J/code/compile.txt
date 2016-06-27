@@ -22,7 +22,9 @@ The prompt will change to indicate that you are now in the "code" folder.
 
 The "javac" command compiles Java code. If you are using libraries that "javac" isn't set up to find, such as the Processing "core.jar" library, you will need to tell it how to find them using the "-classpath" command line option. You can enter the libary locations with the same drag-and-drop trick used the "cd" command above. Just be sure that each entry on the path is separated by a colon (:), with no spaces, as below. The last entry on the "javac" command line should be the files you want to compile. Here I've used the "*" wild card character to indicate that I want to compile all java files in "com/ignofactory/steering/."
 
-Verbena:code paulhz$ javac -classpath /Users/paulhz/Documents/Processing/libraries/IgnoCodeLib/library/IgnoCodeLib.jar:/Applications/Processing.app/Contents/Java/core.jar:/Applications/Processing.app/Contents/Java/modes/java/libraries/video/library/video.jar com/ignofactory/steering/*.java
+This example works in Processing 3.x on my MacOS installation. Your filepaths will be different. You will need to install the Processing 3 video library to compile and run this code and and also my IgnoCodeLib and ControlP5 libraries. This can be done in the Processing IDE. 
+
+Verbena:code paulhz$ javac -classpath /Users/paulhz/Documents/Processing3/libraries/IgnoCodeLib/library/IgnoCodeLib.jar:/Applications/Processing.app/Contents/Java/core.jar:/Users/paulhz/Documents/Processing3/libraries/video/library/video.jar com/ignofactory/steering/*.java
 
 If you don't get any errors, you can compress all the files into a .jar file for Processing. If you get an error, it's time to fix your code. Hopefully, the error message will suggest a rememdy.
 

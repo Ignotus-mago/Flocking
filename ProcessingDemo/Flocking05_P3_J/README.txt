@@ -4,6 +4,6 @@ There are several ways to do this. In this demo, I have compiled my .java classe
 
 For more information, see the document ProcessingEclipse.txt or compile.txt in the code folder. 
 
-Runs Processing 3.x only: steering.jar in code folder was compiled for Processing 3. You will need to install the Processing video library. 
+Runs Processing 3.x only: steering.jar in code folder was compiled for Processing 3. You will need to install the Processing video library. See code/compile.txt and code/compile.sh.
 
 Requires IgnoCodeLib (see https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/).
