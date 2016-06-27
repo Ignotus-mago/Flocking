@@ -223,9 +223,9 @@ public void setup() {
   igno = new IgnoCodeLib(this);
 }
 
-public boolean sketchFullScreen() {
-  return false;
-}
+//public boolean sketchFullScreen() {
+//  return false;
+//}
 
 /**
  * @param w          width of video capture
@@ -1840,8 +1840,8 @@ class VideoResponder implements VideoCallbackINF {
     // get the video image, give it an alpha channel and draw it on our display
     background(pg);
     PImage img = loadImageAlpha(video.get(), 127);
-    // we love pixels
-    noSmooth();
+    // we love pixels, but not in Processing 3.0
+    // noSmooth();
     image(img, 0, 0, width, height);
     smooth();
   }
@@ -1968,8 +1968,3 @@ class BoidState {
     name = _name;
   }   
 }
-
-
-
-
-

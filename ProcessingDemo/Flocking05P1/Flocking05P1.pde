@@ -7,7 +7,7 @@ import net.paulhertz.geom.GeomUtils;
 import net.paulhertz.util.RandUtil;
 import net.paulhertz.aifile.*;
 import controlP5.*;
-import processing.core.*;
+// import processing.core.*;
 import processing.video.*;
 
 /*****  code ported from Eclipse IDE using Java classes in tabs. See README for more information.  *****/
@@ -225,9 +225,9 @@ public void setup() {
   igno = new IgnoCodeLib(this);
 }
 
-public boolean sketchFullScreen() {
-  return false;
-}
+//public boolean sketchFullScreen() {
+//  return false;
+//}
 
 /**
  * @param w          width of video capture
@@ -1971,8 +1971,3 @@ class BoidState {
     name = _name;
   }   
 }
-
-
-
-
-
