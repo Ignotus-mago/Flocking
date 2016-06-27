@@ -295,7 +295,7 @@ public class Flocking05 extends PApplet {
 	}
 
 	/**
-	 * Sets up a ControlP5 menu of BoidStates (separation, alignment, cohesion)
+	 * Sets up list of BoidStates (separation, alignment, cohesion) used by a ControlP5 menu.
 	 */
 	public void initBoidStateList() {
 		boidStateList = new ArrayList<BoidState>();
@@ -1451,6 +1451,7 @@ public class Flocking05 extends PApplet {
 		for (int i = 0; i < boidStateList.size(); i++) {
 			dd2.addItem(boidStateList.get(i).name, i);
 		}
+		dd2.setOpen(false);
 		dd2.setGroup(settings);
 		// drop down list for video devices
 		DropdownList dd1 = controlP5.addDropdownList("devicelist", 8, startPos-20, 240, widgetH + 2);
@@ -1461,6 +1462,7 @@ public class Flocking05 extends PApplet {
 		for (int i = 0; i < devices.length; i++) {
 			dd1.addItem(devices[i], i);
 		}
+		dd1.setOpen(false);
 		dd1.setGroup(settings);
 		// finish
 		settings.moveTo("global");
