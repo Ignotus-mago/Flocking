@@ -893,9 +893,14 @@ public void keyPressed() {
     assignBoidState(selectedBoidState, 1f);
     println("selectedBoidState: "+ selectedBoidState);
   }
-  else if (key == 'q' || key == 'Q') {
+  else if (key == 'q') {
     //placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
     placement = BoidPlacement.values()[(placement.ordinal() + 1) % BoidPlacement.values().length];
+    println("placement = "+ placement.toString());    
+  }
+  else if (key == 'Q') {
+    //placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
+    placement = placement.ordinal() == 0 ? BoidPlacement.values()[BoidPlacement.values().length - 1] : BoidPlacement.values()[placement.ordinal() - 1];
     println("placement = "+ placement.toString());    
   }
   else if (key == ';') {
