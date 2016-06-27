@@ -59,28 +59,32 @@ import processing.video.*;
 
 
 // SHORTCUTS
-// Press spacebar to show or hide controls
-// Press 'd' to toggle drawing
-// Press 'r' to toggle immediate display of drawing
-// Press 'c' to shift color
-// Press 'x' to erase
-// Press 'p' to pause
-// Press 's' to save to AI 7.0 format file
-// Press 'v' to toggle visibility of boids
-// Press 'l' to toggle cohesion lines (best with few boids)
-// Press 't' to toggle topology from torus to plane
-// Press 'w' to toggle wind
-// Press '+' or '-' to increase or decrease boids' separation
-// Press UP or DOWN arrow keys to increase or decrease wind force
-// Press LEFT or RIGHT arrow keys to turn boids.
-// Press mouse to attract boids (when controls are hidden)
-// Drag mouse to push or pull boids (when controls are hidden)
-// Video-tracking/Optical flow controls:
-//    Press 'f' to show or hide flow lines
-//    Press 'i' to show or hide video image
-//    Make motion in the upper right corner to increase boid separation (green dot appears)
-//    Make motion in the upper left corner to decrease boid separation (red dot appears)
-// Press 'h' to show help message 
+//	Press spacebar to show or hide controls
+//	Press 'd' to toggle drawing
+//	Press 'r' to toggle immediate display of drawing
+//	Press 'c' to shift color
+//	Press 'x' to erase
+//	Press 'p' to pause
+//	Press 's' to save to AI 7.0 format file
+//	Press 'v' to toggle visibility of boids
+//	Press 'l' to toggle cohesion lines (best with few boids)
+//	Press 't' to toggle topology from torus to plane
+//	Press 'w' to toggle wind
+//	Press '+' or '-' to increase or decrease boids spearation
+//	Press UP or DOWN arrow keys to increase or decrease wind force
+//	Press LEFT or RIGHT arrow keys to turn boids.
+//	Press mouse to attract boids (when controls are hidden)
+//	Drag mouse to push or pull boids (when controls are hidden)
+//	Press 'g' to toggle stop drawing at edge
+//	Press 'b' to toggle start drawing at edge
+//	Press 'n' to reinitialize boids
+//	Press 'q' or 'Q' to change location rule of new boids
+//	Press 'a' or 'A' to step through Boid State menu
+//	Press '/' to show or hide obstacles
+//	// Video-tracking/Optical flow controls:
+//	Press 'f' to show or hide flow lines
+//	Press 'i' to show or hide video image
+//	Press 'h' to show this help message 
 
 // In this version of the TurtleBoids Sandbox, I am mapping the boids to a torus,
 // in effect the topological figure that results if we assume that boids that go beyond
@@ -563,13 +567,16 @@ public void printHelp() {
   println("Press LEFT or RIGHT arrow keys to turn boids.");
   println("Press mouse to attract boids (when controls are hidden)");
   println("Drag mouse to push or pull boids (when controls are hidden)");
-  println("Press 'h' to show this help message"); 
+  println("Press 'g' to toggle stop drawing at edge");
+  println("Press 'b' to toggle start drawing at edge");
+  println("Press 'n' to reinitialize boids");
+  println("Press 'q' or 'Q' to change location rule of new boids");
+  println("Press 'a' or 'A' to step through Boid State menu");
+  println("Press '/' to show or hide obstacles");
   // Video-tracking/Optical flow controls:
   println("Press 'f' to show or hide flow lines");
   println("Press 'i' to show or hide video image");
-  println("Press 'a' or 'q' to change locations of new boids");
-  //println("Motion in upper right corner increases boid separation (green dot appears)");
-  //println("Motion in upper left corner decreases boid separation (red dot appears)");
+  println("Press 'h' to show this help message"); 
 }
 
 // TODO overlay all images in correct order (maybe this is already done? not sure /2016/ ).
