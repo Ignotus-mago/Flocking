@@ -231,9 +231,9 @@ public class Flocking05 extends PApplet {
 		igno = new IgnoCodeLib(this);
 	}
 	
-	public boolean sketchFullScreen() {
-		return true;
-	}
+//	public boolean sketchFullScreen() {
+//		return true;
+//	}
 	
 	/**
 	 * @param w          width of video capture
@@ -597,7 +597,8 @@ public class Flocking05 extends PApplet {
 				println("width = "+ width +", height = "+ height);
 				println("pg.width = "+ pg.width +", pg.height = "+ pg.height);
 			}
-			noSmooth();
+			// can only call noSmooth() in setup() in Processing 3.x
+			// noSmooth();
 			image(glitchImage, 0, 0, width, height);
 			smooth();
 		}
@@ -1848,8 +1849,8 @@ public class Flocking05 extends PApplet {
 			// get the video image, give it an alpha channel and draw it on our display
 			background(pg);
 			PImage img = loadImageAlpha(video.get(), 127);
-			// we love pixels
-			noSmooth();
+			// we love pixels, can't call noSMooth outside setup() in Processing 3.x
+			// noSmooth();
 			image(img, 0, 0, width, height);
 			smooth();
 		}
