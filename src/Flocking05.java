@@ -164,7 +164,6 @@ public class Flocking05 extends PApplet {
 	int displayWidth;
 	int displayHeight;
 	PImage maskImage;
-	Frame myFrame;
 	boolean isAutoRun = false;
 	int selectedBoidState = 0;
 	PImage glitchImage;
@@ -227,11 +226,6 @@ public class Flocking05 extends PApplet {
 		initMask();
 		initBlueNoise();
 		initBoids();
-		// Processing initializes the frame and hands it to you in the "frame" field.
-		// Eclipse does things differently. Use findFrame method to get the frame in Eclipse.
-		myFrame = findFrame();
-		// myFrame.setResizable(true);
-		// myFrame.setSize(displayWidth, displayHeight);
 		glitchImage = loadImage("../clouds.jpg");
 		glitchImage = loadImageAlpha(glitchImage, 127);
 		igno = new IgnoCodeLib(this);
@@ -264,17 +258,6 @@ public class Flocking05 extends PApplet {
 		isVideoReady = true;
 	}
 	
-	/**
-	 * Get the Java Frame for the PApplet. Will not work in Processing 3.x, which no longer uses Java windowing. 
-	 * @return   Frame where Processing draws, useful method in Eclipse
-	 */
-	public Frame findFrame() {
-		Container f = this.getParent();
-		while (!(f instanceof Frame) && f!=null)
-			f = f.getParent();
-		return (Frame) f;
-	}
-
 	/**
 	 * @return   a list of attached video devices and information about each
 	 */
