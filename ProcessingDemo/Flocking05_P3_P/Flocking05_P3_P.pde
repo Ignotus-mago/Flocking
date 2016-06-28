@@ -14,6 +14,8 @@ import processing.video.*;
 
 /**
 * @author paulhz
+* Licensed under the GNU General Public License version 3.0, which should accompany any distribution of this software.
+* 
 * Runs in Processing 2 and 3.  
 * 
 * Sixth version of flocking application. 

@@ -15,7 +15,10 @@ import processing.video.*;
 
 /**
 * @author paulhz
-* TODO Using Processing 2, but this will change to 3.x. 
+* Licensed under the GNU General Public License version 3.0, which should accompany any distribution of this software.
+* 
+* Runs in Processing 2.x. Steering.jar was compiled with processing.core in Processing 2.x. 
+* See compile.txt and ProcessingEclipse.txt.
 *
 * Sixth version of flocking application. 
 * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
