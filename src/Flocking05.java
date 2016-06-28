@@ -14,8 +14,10 @@ import processing.video.*;
 
 /**
  * @author paulhz
- * TODO Using Processing 2, but this will change to 3.x. Processing 3.x does not support the 
- * Java window model, so the findFrame() method and anything dependent on it will fail. 
+ * Licensed under the GNU General Public License version 3.0, which should accompany any distribution of this software.
+ * 
+ * Using Processing 2 in Eclipse, but this will change to 3.x. Files in ProcessingDemo folder in this project
+ * will run under Processing 3.x. 
  * 
  * Sixth version of flocking application. 
  * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
@@ -59,32 +61,33 @@ public class Flocking05 extends PApplet {
 
 
 	// SHORTCUTS
-	//	Press spacebar to show or hide controls
-	//	Press 'd' to toggle drawing
-	//	Press 'r' to toggle immediate display of drawing
-	//	Press 'c' to shift color
-	//	Press 'x' to erase
-	//	Press 'p' to pause
-	//	Press 's' to save to AI 7.0 format file
-	//	Press 'v' to toggle visibility of boids
-	//	Press 'l' to toggle cohesion lines (best with few boids)
-	//	Press 't' to toggle topology from torus to plane
-	//	Press 'w' to toggle wind
-	//	Press '+' or '-' to increase or decrease boids spearation
-	//	Press UP or DOWN arrow keys to increase or decrease wind force
-	//	Press LEFT or RIGHT arrow keys to turn boids.
-	//	Press mouse to attract boids (when controls are hidden)
-	//	Drag mouse to push or pull boids (when controls are hidden)
-	//	Press 'g' to toggle stop drawing at edge
-	//	Press 'b' to toggle start drawing at edge
-	//	Press 'n' to reinitialize boids
-	//	Press 'q' or 'Q' to change location rule of new boids
-	//	Press 'a' or 'A' to step through Boid State menu
-	//	Press '/' to show or hide obstacles
-	//	// Video-tracking/Optical flow controls:
-	//	Press 'f' to show or hide flow lines
-	//	Press 'i' to show or hide video image
-	//	Press 'h' to show this help message 
+	//	  Press spacebar to show or hide controls
+	//	  Press 'd' to toggle drawing
+	//  	Press 'r' to toggle immediate display of drawing
+	//  	Press 'c' to shift color
+	//  	Press 'x' to erase
+	//		Press 'p' to pause
+	//		Press 's' to save to AI 7.0 format file
+	//		Press 'v' to toggle visibility of boids
+	//		Press 'l' to toggle cohesion lines (best with few boids)
+	//		Press 't' to toggle topology from torus to plane
+	//		Press 'w' to toggle wind
+	//		Press '+' or '-' to increase or decrease boids spearation
+	//		Press UP or DOWN arrow keys to increase or decrease wind force
+	//		Press LEFT or RIGHT arrow keys to turn boids.
+	//		Press mouse to attract boids (when controls are hidden)
+	//		Drag mouse to push or pull boids (when controls are hidden)
+	//		Press 'g' to toggle stop drawing at edge
+	//		Press 'b' to toggle start drawing at edge
+	//		Press 'n' to reinitialize boids
+	//		Press 'q' or 'Q' to change location rule of new boids
+	//		Press 'a' or 'A' to step through Boid State menu
+	//		Press '/' to show or hide obstacles
+	//		// Video-tracking/Optical flow controls:
+	//		Press 'f' to show or hide flow lines
+	//		Press 'i' to show or hide video image
+	//		Press 'h' to show this help message 
+	//  See the keyPressed() method for a few more commands
 	
 	// In this version of the TurtleBoids Sandbox, I am mapping the boids to a torus,
 	// in effect the topological figure that results if we assume that boids that go beyond
