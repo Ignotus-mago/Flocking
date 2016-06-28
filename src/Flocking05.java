@@ -192,7 +192,7 @@ public class Flocking05 extends PApplet {
 	public void setup() {
 		// for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
 		// other proportions will distort video but can be useful
-		size(1597, 610);
+		size(1280, 720);
 		smooth();
 		frameRate = 15;
 		displayWidth = width;
