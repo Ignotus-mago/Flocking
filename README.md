@@ -9,7 +9,7 @@ Original optical flow code by Hidetoshi Shimodaira shimo@is.titech.ac.jp.
 This code is designed to work in the Eclipse IDE, though it can be modifed to run in Processing.
 See the ProcessingDemo folder for examples that run in Processing 2 and Processing 3 (.zip file has them all).
 
-Add Processing 2.x libraries core.jar and video.jar to the Eclipse Build Path. 
+Add Processing 2.2.1 or 3.x libraries core.jar and video.jar to the Eclipse Build Path. 
 In Processing 3 you will need to install the Processing video library.
 Add external libraries IgnoCodeLib (https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/) to the Build Path.
 
