@@ -8,8 +8,11 @@ Original optical flow code by Hidetoshi Shimodaira shimo@is.titech.ac.jp.
 
 This code is designed to work in the Eclipse IDE, though it can be modifed to run in Processing.
 See the ProcessingDemo folder for examples that run in Processing 2 and Processing 3 (.zip file has them all).
-Add Processing 2.x libraries core.jar, video.jar (and perhaps jna.jar, g-streamer-java.jar) to the Eclipse Build Path.
+
+Add Processing 2.x libraries core.jar and video.jar to the Eclipse Build Path. 
 In Processing 3 you will need to install the Processing video library.
-Add IgnoCodeLib (https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/) to the Build Path.
+Add external libraries IgnoCodeLib (https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/) to the Build Path.
+
+To save files, set the filePath variable to point to a directory in your system. 
 
 The ProcessingDemo folder includes fairly complete information on moving code between Processing and Eclipse and strategies to incorporate .java files into Processing.
