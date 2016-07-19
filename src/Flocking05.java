@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import net.paulhertz.geom.GeomUtils;
+import net.paulhertz.geom.Matrix3;
 import net.paulhertz.util.RandUtil;
 import com.ignofactory.steering.*;
 import net.paulhertz.aifile.*;
@@ -162,7 +163,7 @@ public class Flocking05 extends PApplet {
 	boolean dashedLine = false;
 	boolean neonEffect = false;
 	// CIRCLE, BLUENOISE, GRIDTRIPLETS, etc....
-	enum BoidPlacement {GRID, CENTER, RANDOM, RANDOMCENTER, CENTERGRID, GRIDTRIPLETS;}
+	enum BoidPlacement {GRID, CENTER, RANDOM, RANDOMCENTER, CENTERGRID, GRIDTRIPLETS, BLOB;}
 	BoidPlacement placement = BoidPlacement.RANDOM;
 	ArrayList<BoidState> boidStateList;
 	OpticalFlower optical;
@@ -174,6 +175,7 @@ public class Flocking05 extends PApplet {
 	boolean isAutoRun = false;
 	int selectedBoidState = 0;
 	PImage glitchImage;
+	BlueStyle obstacles;
 	
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/boids";
 	String basename = "vtboids";
@@ -192,7 +194,7 @@ public class Flocking05 extends PApplet {
 	public void setup() {
 		// for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
 		// other proportions will distort video but can be useful
-		size(1280, 720);
+		size(960, 960);
 		smooth();
 		frameRate = 15;
 		displayWidth = width;
@@ -209,7 +211,7 @@ public class Flocking05 extends PApplet {
 		flock = new Flock();                   // Add an initial set of boids into the system
 		flockIsDrawing = true;
 		flockIsDisplaying = true;
-		totalBoids = 576;
+		totalBoids = 144;
 		initBoidStateList();                   // create up a menu of different sets of cohesion, separation, and alignment values
 		// assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 0.8f);
 		// start out with specific separation, alignment and cohesion values for boids
@@ -384,33 +386,48 @@ public class Flocking05 extends PApplet {
 	public void initBoids() {
 		int[] hues = {0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330};
 		targetHue = rando.randomElement(hues);
+		for (int i = 0; i < totalBoids; i++) {
+			addOneBoid(random(0, width), random(0, height));
+		}
+		placeBoids(flock.getBoids());
+	}
+	
+	public void placeBoids(ArrayList<Boid> someBoids) {
+		println("placement = "+ placement.toString());
 		switch (placement) {
 		case RANDOM: {
-			for (int i = 0; i < totalBoids; i++) {
-				addOneBoid(random(0, width), random(0, height));
+			for (Boid tBoid : someBoids) {
+				PVector loc = new PVector(random(0, width), random(0, height));
+				tBoid.setLoc(loc);
 			}
 			break;
 		}
 		case CENTER: {
-			for (int i = 0; i < totalBoids; i++) {
-				addOneBoid(width/2, height/2);
+			for (Boid tBoid : someBoids) {
+				tBoid.setLoc(new PVector(width/2, height/2));
 			}
 			break;
 		}
 		case RANDOMCENTER: {
-			int xctr = (int) rando.gauss(width/2, 2 * width);
-			int yctr = (int) rando.gauss(height/2, 2 * height);
+			int xctr = -1;
+			while ((xctr < 0) || (xctr > width)) {
+				xctr = (int) rando.gauss(width/2, width * 24);
+			}
+			int yctr = -1;
+			while ((yctr < 0) || (yctr > height)) {
+				yctr = (int) rando.gauss(height/2, height * 24);
+			}
 			println("xctr = "+ xctr +", yctr = "+ yctr);
-			for (int i = 0; i < totalBoids; i++) {
-				int x = (int) rando.gauss(xctr, width/2);
-				int y = (int) rando.gauss(yctr, height/2);
-				addOneBoid(x, y);
+			for (Boid tBoid : someBoids) {
+				int x = (int) rando.gauss(xctr, width);
+				int y = (int) rando.gauss(yctr, height);
+				tBoid.setLoc(new PVector(x, y));
 			}
 			break;
 		}
 		case GRID: {
 			int q = 1;
-			while (q * q < totalBoids) q++;
+			while (q * q < someBoids.size()) q++;
 			println("Grid with "+ q +" rows and "+ q +" columns");
 			float xStep = (float) Math.floor(width/q);
 			float yStep = (float) Math.floor(height/q);
@@ -423,15 +440,15 @@ public class Flocking05 extends PApplet {
 				}
 			}
 			rando.shuffle((ArrayList)gridPoints);
-			for (int i = 0; i < totalBoids; i++) {
-				PVector loc = gridPoints.get(i);
-				addOneBoid(loc.x, loc.y);
+			int i = 0;
+			for (Boid tBoid : someBoids) {
+				tBoid.setLoc(gridPoints.get(i++));
 			}
 			break;
 		}
 		case CENTERGRID: {
 			int q = 1;
-			while (q * q < totalBoids) q++;
+			while (q * q < someBoids.size()) q++;
 			println("Grid with "+ q +" rows and "+ q +" columns");
 			float xStep = (float) Math.floor(width/(q * 2));
 			float yStep = (float) Math.floor(height/(q * 2));
@@ -444,15 +461,15 @@ public class Flocking05 extends PApplet {
 				}
 			}
 			rando.shuffle((ArrayList)gridPoints);
-			for (int i = 0; i < totalBoids; i++) {
-				PVector loc = gridPoints.get(i);
-				addOneBoid(loc.x, loc.y);
+			int i = 0;
+			for (Boid tBoid : someBoids) {
+				tBoid.setLoc(gridPoints.get(i++));
 			}
 			break;
 		}
 		case GRIDTRIPLETS: {
 			int q = 1;
-			int limit = totalBoids/3;
+			int limit = someBoids.size()/3;
 			while (q * q < limit) q++;
 			println("Grid with "+ q +" rows and "+ q +" columns");
 			float xStep = (float) Math.floor(width/q);
@@ -469,23 +486,52 @@ public class Flocking05 extends PApplet {
 			for (int i = 0; i < limit; i++) {
 				PVector loc = gridPoints.get(i);
 				for (int j = 0; j < 3; j++) {
-					addOneBoid(loc.x, loc.y);					
+					Boid tBoid = someBoids.get(i * 3 + j);
+					tBoid.setLoc(new PVector(loc.x, loc.y));					
 				}
 			}
 			break;
 		}
+		case BLOB: {
+			float xctr = width/2f;
+			xctr += (float) rando.gauss(0, width/8);
+			float yctr = height/2f;
+			yctr += (float) rando.gauss(0, height/8);
+			BezShape blob = makeBlob(xctr, yctr);
+			BezRectangle rect = blob.boundsRect();
+			float xScale = 0.5f * width/rect.getWidth();
+			float yScale = 0.5f * height/rect.getHeight();
+			if (xScale > yScale) blob.scaleShape(yScale);
+			else blob.scaleShape(xScale);
+			rect = blob.boundsRect();
+			float left = rect.getLeft();
+			float right = rect.getRight();
+			float top = rect.getTop();
+			float bottom = rect.getBottom();
+			for (Boid tBoid : someBoids) {
+				float x = rando.randomInRange(left, right);
+				float y = rando.randomInRange(top, bottom);
+				while (!blob.containsPoint(x, y)) {
+					x = rando.randomInRange(left, right);
+					y = rando.randomInRange(top, bottom);
+				}
+				tBoid.setLoc(new PVector(x, y));
+			}
+			break;
+		}
 		default: {
-			for (int i = 0; i < totalBoids; i++) {
-				addOneBoid(random(0, width), random(0, height));
+			for (Boid tBoid : someBoids) {
+				tBoid.setLoc(new PVector(random(0, width), random(0, height)));
 			}
 		}
-		}
+		}		
 	}
+
 	
 	/**
 	 * Initializes a boid and adds it to the flock. Bottleneck method and best place to experiment with boid mods.
 	 */
-	public void addOneBoid(float x, float y) {
+	public Boid addOneBoid(float x, float y) {
 		// TurtleBoid tBoid = new TurtleBoid(this, new PVector(width/2, height/2), 5.0f, 0.08f);
 		TurtleBoid tBoid = new TurtleBoid(this, new PVector(x, y), 8.0f, 0.8f);
 		tBoid.setVisible(isShowBoids);
@@ -512,9 +558,10 @@ public class Flocking05 extends PApplet {
 		setShapeStroke(tBoid, targetHue, 30);
 		if (!flockIsDrawing) t.penUp();
 		// auto draw over selected distance with a call to setMaxDistance
-		int[] nums = {233, 144, 123, 199};
-		// tBoid.setMaxDistance(rando.randomElement(nums));
+		int[] nums = {610, 610, 377, 377, 377, 987};
+		tBoid.setMaxDistance(rando.randomElement(nums));
 		flock.addBoid(tBoid);
+		return tBoid;
 	}
 	
 	 float[] bluenoise = {116.002f, 552.909f, 795.396f, 588.671f, 1522.72f, 549.958f,
@@ -530,21 +577,92 @@ public class Flocking05 extends PApplet {
 	 float[] blueForce = new float[bluenoise.length/2];
 	 // float[] blueForceValues = {76, 89, 110, 123, 144, 152, 178, 199, 233, 246, 288, 322, 377};
 	 // float[] blueForceValues = {21, 29, 34, 47, 55, 76, 89, 110, 123, 144};
-	 float[] blueForceValues = {13, 21, 29, 34, 47, 55, 76, 89, 110, 123};
+	 // float[] blueForceValues = {13, 21, 29, 34, 47, 55, 76, 89, 110, 123};
+	 float[] blueForceValues = {21, 34, 55};
 	 boolean isUseBlue = false;
+	 enum BlueStyle {BLUE, CIRCLE, BLOB, OPENBLOB;}
 	 /**
 	 * Intializes locations that attract or repel boids. 
 	 * Locations may be determined by blue noise or any other distribution you like.
 	 * Experimental code.
 	 */
 	 public void initBlueNoise() {
-		 float hscale = width * 0.00055f;
-		 float vscale = width * 0.0005f;
-		 for (int i = 0; i < bluenoise.length/4; i++) {
-			 float x = bluenoise[2 * i] * hscale;
-			 float y = bluenoise[2 * i + 1] * vscale + height/4.0f;
-			 blueVectors.add(new PVector(x, y));
-			 println("blue vectors element "+ i +" = "+ x +", "+ y);
+		 if (null == obstacles) obstacles = BlueStyle.BLOB;
+		 blueVectors.clear();
+		 switch (obstacles) {
+		 case BLUE: {
+			 float hscale = width * 0.00055f;
+			 float vscale = width * 0.0005f;
+			 for (int i = 0; i < bluenoise.length/4; i++) {
+				 float x = bluenoise[2 * i] * hscale;
+				 float y = bluenoise[2 * i + 1] * vscale + height/4.0f;
+				 blueVectors.add(new PVector(x, y));
+				 // println("blue vectors element "+ i +" = "+ x +", "+ y);
+			 }
+			 break;
+		 }
+		 case CIRCLE: {
+			 float k = (float) rando.gauss(0.375, 0.0125);
+			 float radius = width > height ? k * height : k * width;
+			 int sides = 123;
+			 float xctr = width/2f;
+			 float yctr = height/2f;
+			 double ang = GeomUtils.TWO_PI/sides;
+			 Matrix3 matx = new Matrix3();
+			 matx.translateCTM(-xctr, -yctr);
+			 matx.rotateCTM(ang);
+			 matx.translateCTM(xctr, yctr);
+			 Point2D.Double pt = new Point2D.Double(xctr, yctr - radius);
+			 for (int i = 0; i < sides; i++) {
+				 pt = matx.multiplyPointByNormalCTM(pt.x, pt.y, pt);
+				 blueVectors.add(new PVector((float) (pt.getX() + rando.gauss(0, 128)), (float) (pt.getY() + rando.gauss(0, 128))));
+			 }
+			 break;
+		 }
+		 case BLOB: {
+			 float xctr = width/2f;
+			 xctr += (float) rando.gauss(0, width/8);
+			 float yctr = height/2f;
+			 yctr += (float) rando.gauss(0, height/8);
+			 BezShape blob = makeBlob(xctr, yctr);
+			 BezRectangle rect = blob.boundsRect();
+			 float xScale = 0.75f * width/rect.getWidth();
+			 float yScale = 0.75f * height/rect.getHeight();
+			 blob.scaleShape(xScale, yScale);
+			 blob.asPolygon(16);
+			 float[] xcoords = blob.xcoords();
+			 float[] ycoords = blob.ycoords();
+			 for (int i = 0; i < xcoords.length; i++) {
+				 blueVectors.add(new PVector(xcoords[i], ycoords[i]));
+			 }
+			 break;
+		 }
+		 case OPENBLOB: {
+			 float xctr = width/2f;
+			 xctr += (float) rando.gauss(0, width/8);
+			 float yctr = height/2f;
+			 yctr += (float) rando.gauss(0, height/8);
+			 BezShape blob = makeBlob(xctr, yctr);
+			 BezRectangle rect = blob.boundsRect();
+			 float xScale = 0.75f * width/rect.getWidth();
+			 float yScale = 0.75f * height/rect.getHeight();
+			 blob.scaleShape(xScale, yScale);
+			 blob.asPolygon(12);
+			 float[] xcoords = blob.xcoords();
+			 float[] ycoords = blob.ycoords();
+			 int ct = xcoords.length;
+			 int start = 2 * (int) Math.floor(rando.randomInRange(0, ct)/2f);
+			 int len = (int) rando.randomInRange(ct/8, ct/4);
+			 int end = start + len;
+			 for (int i = 0; i < xcoords.length; i++) {
+				 if ((i > start) && (i < end)) continue;
+				 blueVectors.add(new PVector(xcoords[i], ycoords[i]));
+			 }
+			 break;
+		 }
+		 default: {
+			 
+		 }
 		 }
 		 isUseBlue = true;
 	 }
@@ -708,7 +826,7 @@ public class Flocking05 extends PApplet {
 	public void evitar() {
 		if (!isVideoReady) return;
 		// negative avoidance values attract (the range -0.33 to -0.9 works well), positive values repel (most notable above 1.0): experiment!
-		avoidance = 1.1f;
+		avoidance = 2.1f;
 		for (Boid tBoid : flock.getBoids()) {
 			PVector vec = optical.getFlow(tBoid.getLoc());
 			// tBoid.avoid(vec, avoidance);
@@ -781,9 +899,13 @@ public class Flocking05 extends PApplet {
 				setShapeStroke(((TurtleBoid) tBoid), targHue, 30);
 			}
 		}
-		else if (key == 'x' || key == 'X') {
+		else if (key == 'x') {
 			erase();
 			gList.clear(); 
+		}
+		else if (key == 'X') {
+			erase();
+			gList.clear();
 		}
 		else if (key == 'p' || key == 'P') {
 			isPaused = !isPaused;
@@ -792,9 +914,15 @@ public class Flocking05 extends PApplet {
 			stopDrawing();
 			saveListAI(basename);
 		}
-		else if (key == 'y' || key == 'Y') {
-			// reset the divisor
-			divisor = 128;
+		else if (key == 'y') {
+			// reset the obstacles
+			initBlueNoise();
+		}
+		else if (key == 'Y') {
+			obstacles = BlueStyle.values()[(obstacles.ordinal() + 1) % BlueStyle.values().length];
+			// reset the obstacles
+			initBlueNoise();
+			println("obstacles = "+ obstacles.toString());					
 		}
 		else if (key == '+' || key == '=') {
 			// trigger call to setSeparation() by setting the number box, avoid recursion
@@ -870,8 +998,13 @@ public class Flocking05 extends PApplet {
 		else if (key == 'm' || key == 'M') {
 			testGauss();
 		}
-		else if (key == 'n' || key == 'N') {
+		else if (key == 'n') {
 			newBoids();
+		}
+		else if (key == 'N') {
+			toggleDrawing();
+			toggleDrawing();
+			placeBoids(flock.getBoids());
 		}
 		else if (key == 'o' || key == 'O') {
 			neonEffect = !neonEffect;
@@ -1667,7 +1800,7 @@ public class Flocking05 extends PApplet {
 		pg.background(255);
 		drawOffscreen(pg);
 	}
-	
+		
 	/**
 	 * Pauses draw method.
 	 */
