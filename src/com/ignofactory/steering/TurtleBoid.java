@@ -159,8 +159,17 @@ public class TurtleBoid extends Boid implements ColorableINF {
 		}
 	}
 	
+	/******** Override Boid.setLoc() ********/
 	
+	@Override
+	public void setLoc(PVector loc) {
+		// TODO Auto-generated method stub
+		super.setLoc(loc);
+		getTurtle().setTurtleX(loc.x);
+		getTurtle().setTurtleY(loc.y);
+	}
 
+	
 	/******** Delegated methods for style ********/
 	
 
