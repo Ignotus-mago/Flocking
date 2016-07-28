@@ -13,6 +13,6 @@ Add Processing 2.2.1 or 3.x libraries core.jar and video.jar to the Eclipse Buil
 In Processing 3 you will need to install the Processing video library.
 Add external libraries IgnoCodeLib (https://processing.org/reference/libraries/) and ControlP5 (http://www.sojamo.de/libraries/controlP5/) to the Build Path.
 
-To save files, set the filePath variable to point to a directory in your system. 
+You will need to set the video device for your system in the **setupVideo** call in the **setup** method. To save files, set the **filePath** variable to point to a directory in your system.  
 
 The ProcessingDemo folder includes fairly complete information on moving code between Processing and Eclipse and strategies to incorporate .java files into Processing.
