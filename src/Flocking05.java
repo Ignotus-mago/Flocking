@@ -1,5 +1,7 @@
 import java.awt.Container;
 import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -163,7 +165,7 @@ public class Flocking05 extends PApplet {
 	boolean dashedLine = false;
 	boolean neonEffect = false;
 	// CIRCLE, BLUENOISE, GRIDTRIPLETS, etc....
-	enum BoidPlacement {GRID, CENTER, RANDOM, RANDOMCENTER, CENTERGRID, GRIDTRIPLETS, BLOB;}
+	enum BoidPlacement {GRID, CENTER, RANDOM, RANDOMCENTER, CENTERGRID, GRIDTRIPLETS, BLOB, BIGBLOB;}
 	BoidPlacement placement = BoidPlacement.RANDOM;
 	ArrayList<BoidState> boidStateList;
 	OpticalFlower optical;
@@ -194,7 +196,7 @@ public class Flocking05 extends PApplet {
 	public void setup() {
 		// for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
 		// other proportions will distort video but can be useful
-		size(960, 960);
+		size(1597, 987);
 		smooth();
 		frameRate = 15;
 		displayWidth = width;
@@ -211,7 +213,7 @@ public class Flocking05 extends PApplet {
 		flock = new Flock();                   // Add an initial set of boids into the system
 		flockIsDrawing = true;
 		flockIsDisplaying = true;
-		totalBoids = 144;
+		totalBoids = 625;
 		initBoidStateList();                   // create up a menu of different sets of cohesion, separation, and alignment values
 		// assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 0.8f);
 		// start out with specific separation, alignment and cohesion values for boids
@@ -235,6 +237,9 @@ public class Flocking05 extends PApplet {
 		initMask();
 		initBlueNoise();
 		initBoids();
+		// negative avoidance values attract (the range -0.33 to -0.9 works well), 
+		// positive values repel (most notable above 1.0): experiment!
+		avoidance = -1.25f;
 		glitchImage = loadImage("../clouds.jpg");
 		glitchImage = loadImageAlpha(glitchImage, 127);
 		igno = new IgnoCodeLib(this);
@@ -315,6 +320,8 @@ public class Flocking05 extends PApplet {
 		boidStateList.add(new BoidState(144, 89, 377, "untitled 3"));
 		// sep = 144; align = 110; coh = 89;
 		boidStateList.add(new BoidState(144, 110, 89, "untitled 4"));
+		// sep = 144; align = 233; coh = 89;
+		boidStateList.add(new BoidState(199, 233, 89, "wide tracer "));
 		// sep = 13; align = 47; coh = 34;
 		boidStateList.add(new BoidState(13, 47, 34, "small clusters"));
 		// sep = 21; align = 47; coh = 55;
@@ -358,7 +365,7 @@ public class Flocking05 extends PApplet {
 		n4.setValue(align);
 		n5.setValue(coh);
 		useFactors = oldUseFactors;
-		println("assigned sep = "+ sep +", align = "+ align +", coh = "+ coh + " -- "+ state.name);
+		println("assigned sep = "+ sep +", align = "+ align +", coh = "+ coh + "  \n boid state "+ i +" -- "+ state.name);
 	}
 	
 	/**
@@ -389,7 +396,21 @@ public class Flocking05 extends PApplet {
 		for (int i = 0; i < totalBoids; i++) {
 			addOneBoid(random(0, width), random(0, height));
 		}
+		setBoidDrawStyle(flock.getBoids());
 		placeBoids(flock.getBoids());
+	}
+	
+	public void setBoidDrawStyle(Boid tBoid) {
+		// auto draw over selected distance with a call to setMaxDistance
+		// int[] nums = {21, 34, 55, 89};
+		int[] nums = {89, 89, 89, 89, 89, 89, 144, 144, 144, 233, 233, 377};
+		((TurtleBoid) tBoid).setMaxDistance(rando.randomElement(nums));
+	}
+	
+	public void setBoidDrawStyle(ArrayList<Boid> someBoids) {
+		for (Boid tBoid : someBoids) {
+			setBoidDrawStyle(tBoid);
+		}
 	}
 	
 	public void placeBoids(ArrayList<Boid> someBoids) {
@@ -492,15 +513,20 @@ public class Flocking05 extends PApplet {
 			}
 			break;
 		}
-		case BLOB: {
+		case BLOB: 
+		case BIGBLOB: {
 			float xctr = width/2f;
 			xctr += (float) rando.gauss(0, width/8);
 			float yctr = height/2f;
 			yctr += (float) rando.gauss(0, height/8);
 			BezShape blob = makeBlob(xctr, yctr);
 			BezRectangle rect = blob.boundsRect();
-			float xScale = 0.5f * width/rect.getWidth();
-			float yScale = 0.5f * height/rect.getHeight();
+			float xScale = 0.55f * width/rect.getWidth();
+			float yScale = 0.55f * height/rect.getHeight();
+			if (placement == placement.BIGBLOB) {
+				xScale = 0.89f * width/rect.getWidth();
+				yScale = 0.89f * height/rect.getHeight();
+			}
 			if (xScale > yScale) blob.scaleShape(yScale);
 			else blob.scaleShape(xScale);
 			rect = blob.boundsRect();
@@ -538,6 +564,12 @@ public class Flocking05 extends PApplet {
 		tBoid.setResponder(responder);
 		float m = (random(0.9f, 1.1f) + random(0.9f, 1.1f) + random(0.9f, 1.1f)) / 3.0f;
 		//float m = (random(5.1f, 9.5f) + random(5.1f, 9.5f) + random(5.1f, 9.5f)) / 3.0f;
+		//
+		tBoid.setSeparationDistance(sep);
+		tBoid.setAlignmentDistance(align);
+		tBoid.setCohesionDistance(coh);
+		//
+		/*
 		float separation = (float) rando.gauss(sep, 0.005);
 		if (separation > 0) tBoid.setSeparationDistance(separation);
 		else tBoid.setSeparationDistance(sep);
@@ -547,19 +579,18 @@ public class Flocking05 extends PApplet {
 		float cohesion = (float) rando.gauss(coh, 0.005);
 		if (cohesion > 0) tBoid.setCohesionDistance(cohesion);
 		else tBoid.setCohesionDistance(coh);
+		*/
 		tBoid.setDisplaying(flockIsDisplaying);
 		Turtle t = tBoid.getTurtle();
 		// fewer trails, less memory required
-		t.setMaxTrails(4);
+		t.setMaxTrails(8);
+		// line weight
 		t.setWeight(weight);
 		float w = (float) rando.gauss(weight, 0.01);
 		if (w > 0) t.setWeight(w);
 		t.setNoFill();
 		setShapeStroke(tBoid, targetHue, 30);
 		if (!flockIsDrawing) t.penUp();
-		// auto draw over selected distance with a call to setMaxDistance
-		int[] nums = {610, 610, 377, 377, 377, 987};
-		tBoid.setMaxDistance(rando.randomElement(nums));
 		flock.addBoid(tBoid);
 		return tBoid;
 	}
@@ -580,7 +611,7 @@ public class Flocking05 extends PApplet {
 	 // float[] blueForceValues = {13, 21, 29, 34, 47, 55, 76, 89, 110, 123};
 	 float[] blueForceValues = {21, 34, 55};
 	 boolean isUseBlue = false;
-	 enum BlueStyle {BLUE, CIRCLE, BLOB, OPENBLOB;}
+	 enum BlueStyle {BLUE, CIRCLE, BLOB, CORNERBLOB, OPENBLOB;}
 	 /**
 	 * Intializes locations that attract or repel boids. 
 	 * Locations may be determined by blue noise or any other distribution you like.
@@ -619,11 +650,16 @@ public class Flocking05 extends PApplet {
 			 }
 			 break;
 		 }
-		 case BLOB: {
+		 case BLOB: 
+		 case CORNERBLOB: {
 			 float xctr = width/2f;
 			 xctr += (float) rando.gauss(0, width/8);
 			 float yctr = height/2f;
 			 yctr += (float) rando.gauss(0, height/8);
+			 if (obstacles == BlueStyle.CORNERBLOB) {
+				 xctr += width/2f;
+				 yctr += height/2f;
+			 }
 			 BezShape blob = makeBlob(xctr, yctr);
 			 BezRectangle rect = blob.boundsRect();
 			 float xScale = 0.75f * width/rect.getWidth();
@@ -825,8 +861,6 @@ public class Flocking05 extends PApplet {
 	 */
 	public void evitar() {
 		if (!isVideoReady) return;
-		// negative avoidance values attract (the range -0.33 to -0.9 works well), positive values repel (most notable above 1.0): experiment!
-		avoidance = 2.1f;
 		for (Boid tBoid : flock.getBoids()) {
 			PVector vec = optical.getFlow(tBoid.getLoc());
 			// tBoid.avoid(vec, avoidance);
@@ -1036,12 +1070,12 @@ public class Flocking05 extends PApplet {
 		else if (key == 'a') {
 			selectedBoidState = (selectedBoidState + 1) % boidStateList.size();
 			assignBoidState(selectedBoidState, 1f);
-			println("selectedBoidState: "+ selectedBoidState);
+			// println("selectedBoidState: "+ selectedBoidState);
 		}
 		else if (key == 'A') {
 			selectedBoidState = selectedBoidState == 0 ? boidStateList.size() - 1 : (selectedBoidState - 1) % boidStateList.size();
 			assignBoidState(selectedBoidState, 1f);
-			println("selectedBoidState: "+ selectedBoidState);
+			// println("selectedBoidState: "+ selectedBoidState);
 		}
 		else if (key == 'q') {
 			//placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
@@ -1052,6 +1086,10 @@ public class Flocking05 extends PApplet {
 			//placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
 			placement = placement.ordinal() == 0 ? BoidPlacement.values()[BoidPlacement.values().length - 1] : BoidPlacement.values()[placement.ordinal() - 1];
 			println("placement = "+ placement.toString());		
+		}
+		else if (key == 'j' || key == 'J') {
+			avoidance = -avoidance;
+			println("-- avoidance = "+ avoidance);
 		}
 		else if (key == ';') {
 			if (!isVideoReady) return;
@@ -1072,6 +1110,15 @@ public class Flocking05 extends PApplet {
 			isUseBlue = !isUseBlue;
 			println ("isUseBlue = "+ isUseBlue);
 		}
+	}
+	
+	/**
+	 * Detects Caps Lock state. We use Caps Lock state to switch between audio and graphics command sets. 
+	 * @return true if Caps Lock is down, false otherwise.
+	 */
+	public boolean isCapsLockDown() {
+		boolean isDown = Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_CAPS_LOCK);
+		return isDown;
 	}
 	
 	/**
@@ -2077,6 +2124,9 @@ public class Flocking05 extends PApplet {
 		float[] vy = optical.getVycoords();
 		PVector[] vec = optical.getFlowList();
 		float flowScale = optical.getFlowScale();
+		// TODO scale flow lines when drawing window has different proportions from video window
+		float hs = (width/(float) videoWidth);
+		float vs = (height/(float) videoHeight);
 		for (int i = 0; i < vec.length; i++) {
 			float u = vec[i].x;
 			float v = vec[i].y;
@@ -2084,7 +2134,7 @@ public class Flocking05 extends PApplet {
 			float y0 = vy[i];
 //			float a = PApplet.sqrt(u * u + v * v);
 //			if(a >= 2.0) line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
-			line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
+			line(x0, y0 * vs, x0 + u * hs, y0 * vs + v * vs);
 		}
 		popStyle();
 	}
