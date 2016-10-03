@@ -1,7 +1,6 @@
 package com.ignofactory.steering;
 
 import java.util.ArrayList;
-
 import processing.core.*;
 import processing.video.*;
 
@@ -61,6 +60,7 @@ public class OpticalFlower {
 	 */
 	
 	Capture video;
+	String[] videoDevices;
 	PFont font;
 	int[] vline;
 	
@@ -129,6 +129,10 @@ public class OpticalFlower {
 	 */
 	public OpticalFlower(PApplet parent, int wscreen, int hscreen, int fps, int gs, float predsec, String cameraName) {
 		this.parent = parent;
+		setVideoParams(wscreen, hscreen, fps, gs, predsec, cameraName);
+	}
+	
+	public void setVideoParams(int wscreen, int hscreen, int fps, int gs, float predsec, String cameraName) {
 		this.wscreen = wscreen;
 		this.hscreen = hscreen;
 		this.fps = fps;
@@ -136,13 +140,22 @@ public class OpticalFlower {
 		this.predsec = predsec;
 		this.cameraName = cameraName;
 		flowColor = parent.color(220, 220, 220);
-		imageFlowColor = parent.color(240, 240, 240, 64);
-		init();
+		imageFlowColor = parent.color(240, 240, 240, 64);		
 	}
+	
+//	public OpticalFlower opticalFlowerFactory(PApplet parent, int wscreen, int hscreen, int fps, int gs, float predsec, String cameraName) {
+//		OpticalFlower flower;
+//		
+//		return flower;
+//	}
 
-	public void init(){
+	public boolean init(){
 		// set up video capture
 		PApplet.println("init: ", parent, wscreen, hscreen, cameraName, fps);
+		if (!validateVideoParams(wscreen, hscreen, cameraName, fps)) {
+			PApplet.println("Failed to initialize video. Device not found.");
+			return false;
+		}
 		video = new Capture(parent, wscreen, hscreen, cameraName, fps);
 		video.start();
 		// font
@@ -159,7 +172,7 @@ public class OpticalFlower {
 		gs2 = gs/2;                 // half grid space
 		df = predsec * fps;
 		vs = parent.width / (float)wscreen;
-		flowScale *= vs;
+		flowScale = vs;
 		PApplet.println("vs = "+ vs);
 		// arrays
 		par = new float[gw * gh];
@@ -184,6 +197,7 @@ public class OpticalFlower {
 		vline = new int[wscreen];        // color array
 		flowList = new PVector[gw * gh]; // flow vectors
 		loadPoints();
+		return true;
 	}
 	
 	public int getGs() {
@@ -300,7 +314,7 @@ public class OpticalFlower {
 			clockNow = parent.millis();
 			clockDiff = clockNow - clockPrev;
 			clockPrev = clockNow;
-
+			
 			// mirror, before any other calculations
 			if(flagmirror) {
 				for(int y = 0; y < hscreen; y++) {
@@ -311,14 +325,16 @@ public class OpticalFlower {
 						video.pixels[ig + x] = vline[wscreen - 1 - x];
 				}
 			}
-
+			
 			// draw image
 			if(flagimage) {
 				if (null != responder) {
 					responder.videoCallback(video);
+					// PApplet.println("callback");
 				}
 				else {
 					if (video.available()) (parent).set(0, 0, video);
+					// PApplet.println("null responder");
 				}
 			}
 
@@ -564,6 +580,59 @@ public class OpticalFlower {
 
 	public Capture getVideo() {
 		return this.video;
+	}
+	
+	/******** VIDEO PARAMETERS VALIDATION ********/
+	
+	/**
+	 * @return   a list of attached video devices and information about each
+	 */
+	public String[] getVideoDevices() {
+		if (null == videoDevices) {
+			videoDevices = Capture.list();
+		}
+		return videoDevices;
+	}
+
+	/**
+	 * Steps through the list of attached video devices--if one matches arguments, return true.
+	 * @param testW      width of video image
+	 * @param testH      height of video image
+	 * @param testName   name of video device
+	 * @param testFps    frames per second
+	 * @return           true if there is a video device that matches the supplied arguments, false otherwise
+	 */
+	public boolean validateVideoParams(int testW, int testH, String testName, int testFps) {
+		String[] devices = getVideoDevices();
+		for (int i = 0; i < devices.length; i++) {
+			String device = devices[i];
+			String[] info = device.split(",");
+			String deviceName = info[0].substring(info[0].indexOf("=") + 1);
+			String dimensions = info[1].substring(info[1].indexOf("=") + 1);
+			String[] coords = dimensions.split("x");
+			int w = Integer.valueOf(coords[0]);
+			int h = Integer.valueOf(coords[1]);
+			String fps = info[2].substring(info[2].indexOf("=") + 1);
+			int framerate = Integer.valueOf(fps);
+			if (w == testW && h == testH && deviceName.equals(testName) && framerate == testFps) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	class VideoDevice {
+		int wscreen;
+		int hscreen;
+		String name;
+		int fps;
+		
+		public VideoDevice(int w, int h, String name, int fps) {
+			this.wscreen = w;
+			this.hscreen = h;
+			this.name = name;
+			this.fps = fps;
+		}
 	}
 	
 }
