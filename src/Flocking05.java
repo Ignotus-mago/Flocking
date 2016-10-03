@@ -230,10 +230,13 @@ public class Flocking05 extends PApplet {
 		printHelp();
 		// println("PHI = "+ PHI);
 		println("Please choose a video capture device from the popup menu.");
+		if (!isVideoReady) { 
+			// you'll need to figure out your own values for setupVideo, especially the camera name
+			// a call to printDevices can tell you waht you have available.
+			setupVideo(videoWidth, videoHeight, 30, 8, 0.25f, "FaceTime HD Camera");
+			if (!isVideoReady) exit();
+		}
 		gList = new ArrayList<GroupComponent>();
-		// you'll need to figure out your own values for setupVideo, especially the camera name
-		// a call to printDevices can tell you waht you have available.
-		setupVideo(videoWidth, videoHeight, 30, 8, 0.25f, "FaceTime HD Camera");
 		initMask();
 		initBlueNoise();
 		initBoids();
@@ -258,18 +261,25 @@ public class Flocking05 extends PApplet {
 	 * @param device     name of the video capture device, will vary with the gear you are using
 	 */
 	public void setupVideo(int w, int h, int fps, int grid, float timespan, String device) {
-		//printDevices();
+		// printDevices();
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, "IIDC FireWire Video");
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, "USB Video Class Video");
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f);
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, Capture.list()[0]);
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, "Built-in iSight");
 		optical = new OpticalFlower(this, w, h, fps, grid, timespan, device);
-		optical.setFlowColor(color(233, 220, 199, 127));
-		optical.setImageFlowColor(color(144, 110, 233, 255));
-		videoResponder = new VideoResponder();
-		optical.setResponder(videoResponder);
-		isVideoReady = true;
+		isVideoReady = optical.init();
+		if (!isVideoReady) {
+			println("***** Video failed to initialize. Please check that you are using an available device and settings. *****");
+			println("***** Select device and settings from the following list: *****");
+			printDevices();
+		}
+		else {
+			optical.setFlowColor(color(233, 220, 199, 127));
+			optical.setImageFlowColor(color(144, 110, 233, 255));
+			videoResponder = new VideoResponder();
+			optical.setResponder(videoResponder);
+		}
 	}
 	
 	/**
@@ -768,7 +778,9 @@ public class Flocking05 extends PApplet {
 		}
 		if (isVideoReady) {
 			optical.flow();
-			if (!optical.isFlagflow()) this.drawVectorLines();
+			if (!optical.isFlagflow()) {
+				this.drawVectorLines();
+			}
 		}
 		if (isUseBlue) {
 			for (PVector vec : blueVectors) {
@@ -2026,7 +2038,10 @@ public class Flocking05 extends PApplet {
 			setShapeStroke(((TurtleBoid)tBoid), targHue, 30);
 		}
 	}
-		
+	
+	
+	/************* VideoResponder Class *************/
+
 	boolean skipAction = true;
 	class VideoResponder implements VideoCallbackINF {
 		float actionThreshold = 0.5f;

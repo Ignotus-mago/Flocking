@@ -19,7 +19,7 @@ import processing.video.*;
 /**
  * @author paulhz
  *
- * Fifth version of flocking application. 
+ * Fifth version of flocking application, calls OpticalFlowMaker for video flow tracking.
  * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
  * Demonstration of Craig Reynolds' "Flocking" behavior, See: http://www.red3d.com/cwr/.
  * Rules: Cohesion, Separation, Alignment
