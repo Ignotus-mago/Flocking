@@ -35,7 +35,7 @@ public class VideoFlowTest extends PApplet {
 	public void setup() {
 		// for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
 		// other proportions will distort video but can be useful
-		size(1280, 720);
+		size(1280, 512);
 		smooth();
 		frameRate = 15;
 		displayWidth = width;
@@ -341,12 +341,10 @@ public class VideoFlowTest extends PApplet {
 		}
 		float flowScale = optical.getFlowScale();
 		// TODO scale flow lines when drawing window has different proportions from video window
-		float hs = (width/(float) videoWidth);
-		float vs = (height/(float) videoHeight);
 		int rowCount = optical.getGw();
-		int columnCount = optical.getGh();
-		int g1 = optical.getGs();
-		int g2 = g1/2;
+		float displayRatio = width/(float) height;
+		float videoRatio = videoWidth/(float) videoHeight;
+		float vs = videoRatio/displayRatio;
 		for (int i = 0; i < vec.length; i++) {
 			float u = vec[i].x;
 			float v = vec[i].y;
@@ -357,14 +355,15 @@ public class VideoFlowTest extends PApplet {
 				offscreen.stroke(color(233, 0, 89, 255));
 				offscreen.fill(color(233, 0, 89, 255));
 				// offscreen.ellipse(x0 * hs, y0 * vs, 5, 5);
-				offscreen.ellipse(x0, y0, 5, 5);
+				offscreen.ellipse(x0, y0 * vs, 5, 5);
 			}
 			else {
 				offscreen.stroke(color(55, 55, 89, 255));
 			}
 			float a = PApplet.sqrt(u * u + v * v);
 			if(a >= 2.0) {
-				offscreen.line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
+				// offscreen.line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
+				offscreen.line(x0, y0 * vs, x0 + u * flowScale, y0 * vs + v * flowScale);
 				// offscreen.line(x0, y0, x0 + u * hs, y0 + v * vs);
 				// offscreen.line(x0 * hs - g1, y0 * vs, x0 * hs + u * hs - g1, y0 * vs + v * vs);
 			}

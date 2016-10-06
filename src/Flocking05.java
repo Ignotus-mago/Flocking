@@ -185,6 +185,9 @@ public class Flocking05 extends PApplet {
 
 	IgnoCodeLib igno;
 	
+	String[] videoDevices;
+
+	
 	/**
 	 * Method required for Eclipse IDE and standalone Java.
 	 * @param args
@@ -267,7 +270,12 @@ public class Flocking05 extends PApplet {
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f);
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, Capture.list()[0]);
 		// optical = new OpticalFlower(this, width, height, 20, 0.5f, "Built-in iSight");
-		optical = new OpticalFlower(this, w, h, fps, grid, timespan, device);
+		if (null == optical) {
+			optical = new OpticalFlower(this, w, h, fps, grid, timespan, device);
+		}
+		else {
+			optical.setVideoParams(w, h, fps, grid, timespan, device);
+		}
 		isVideoReady = optical.init();
 		if (!isVideoReady) {
 			println("***** Video failed to initialize. Please check that you are using an available device and settings. *****");
@@ -286,8 +294,10 @@ public class Flocking05 extends PApplet {
 	 * @return   a list of attached video devices and information about each
 	 */
 	public String[] getVideoDevices() {
-		String[] devices = Capture.list();
-		return devices;
+		if (null == videoDevices) {
+			videoDevices = Capture.list();
+		}
+		return videoDevices;
 	}
 	
 	/**
@@ -2059,7 +2069,7 @@ public class Flocking05 extends PApplet {
 		public void videoCallback(Capture video) {
 			// get the video image, give it an alpha channel and draw it on our display
 			background(pg);
-			PImage img = loadImageAlpha(video.get(), 127);
+			PImage img = loadImageAlpha(video.get(), 80);
 			// we love pixels, can't call noSMooth outside setup() in Processing 3.x
 			// noSmooth();
 			image(img, 0, 0, width, height);
@@ -2096,7 +2106,7 @@ public class Flocking05 extends PApplet {
 				else if (mag4 > actionThreshold) {
 					markGrid((int)btn4.x, (int)btn4.y, color4);
 					if (millis() - evtTimer < evtDebounce) return;
-					//assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
+					assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
 					evtTimer = millis();
 				}
 			}
@@ -2105,7 +2115,7 @@ public class Flocking05 extends PApplet {
 				if (mag3 > actionThreshold) {
 					markGrid((int)btn3.x, (int)btn3.y, color3);
 					if (millis() - evtTimer < evtDebounce) return;
-					//erase();
+					erase();
 					evtTimer = millis();
 				}
 			}
@@ -2114,7 +2124,7 @@ public class Flocking05 extends PApplet {
 				if (mag4 > actionThreshold) {
 					markGrid((int)btn4.x, (int)btn4.y, color4);
 					if (millis() - evtTimer < evtDebounce) return;
-					//n1.setValue(min(sep + 1, sepMax));
+					n1.setValue(min(sep + 1, sepMax));
 					evtTimer = millis();
 				}
 			}
@@ -2131,6 +2141,57 @@ public class Flocking05 extends PApplet {
 		
 	}
 	
+	// still some problems working with boids -- flickering
+	public void drawVectorLines(PGraphics offscreen) {
+		offscreen.beginDraw();
+		offscreen.background(192, 192, 192, 127);
+		offscreen.pushStyle();
+		offscreen.stroke(color(55, 55, 89, 255));
+		offscreen.strokeWeight(1);
+		float[] vx = optical.getVxcoords();
+		float[] vy = optical.getVycoords();
+		PVector[] vec = optical.getFlowList();
+		if (null == vec || 0 >= vec.length || null == vec[0]) {
+			println("vec array is empty");
+			return;
+		}
+		float flowScale = optical.getFlowScale();
+		// TODO scale flow lines when drawing window has different proportions from video window
+		int rowCount = optical.getGw();
+		float displayRatio = width/(float) height;
+		float videoRatio = videoWidth/(float) videoHeight;
+		float vs = videoRatio/displayRatio;
+		for (int i = 0; i < vec.length; i++) {
+			float u = vec[i].x;
+			float v = vec[i].y;
+			float x0 = vx[i];
+			float y0 = vy[i];
+			/*
+			if (i % rowCount == 0 || i % rowCount == rowCount - 1
+					|| i < rowCount || i > vec.length - rowCount) {
+				offscreen.stroke(color(233, 0, 89, 255));
+				offscreen.fill(color(233, 0, 89, 255));
+				// offscreen.ellipse(x0 * hs, y0 * vs, 5, 5);
+				offscreen.ellipse(x0, y0 * vs, 5, 5);
+			}
+			else {
+				offscreen.stroke(color(55, 55, 89, 255));
+			}
+			*/
+			offscreen.stroke(color(55, 55, 89, 255));
+			float a = PApplet.sqrt(u * u + v * v);
+			if(a >= 2.0) {
+				// offscreen.line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
+				offscreen.line(x0, y0 * vs, x0 + u * flowScale, y0 * vs + v * flowScale);
+				// offscreen.line(x0, y0, x0 + u * hs, y0 + v * vs);
+				// offscreen.line(x0 * hs - g1, y0 * vs, x0 * hs + u * hs - g1, y0 * vs + v * vs);
+			}
+		}
+		offscreen.popStyle();
+		offscreen.endDraw();
+	}
+
+	
 	public void drawVectorLines() {
 		pushStyle();
 		stroke(color(55, 55, 89, 127));
@@ -2140,16 +2201,19 @@ public class Flocking05 extends PApplet {
 		PVector[] vec = optical.getFlowList();
 		float flowScale = optical.getFlowScale();
 		// TODO scale flow lines when drawing window has different proportions from video window
-		float hs = (width/(float) videoWidth);
-		float vs = (height/(float) videoHeight);
+		int rowCount = optical.getGw();
+		float displayRatio = width/(float) height;
+		float videoRatio = videoWidth/(float) videoHeight;
+		float vs = videoRatio/displayRatio;
 		for (int i = 0; i < vec.length; i++) {
 			float u = vec[i].x;
 			float v = vec[i].y;
 			float x0 = vx[i];
 			float y0 = vy[i];
-//			float a = PApplet.sqrt(u * u + v * v);
-//			if(a >= 2.0) line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
-			line(x0, y0 * vs, x0 + u * hs, y0 * vs + v * vs);
+			float a = PApplet.sqrt(u * u + v * v);
+			if(a >= 2.0) {
+				line(x0, y0 * vs, x0 + u * flowScale, y0 * vs + v * flowScale * vs);
+			}
 		}
 		popStyle();
 	}

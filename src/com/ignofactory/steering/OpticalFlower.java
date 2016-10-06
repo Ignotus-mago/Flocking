@@ -171,7 +171,7 @@ public class OpticalFlower {
 		gh = hscreen/gs;            // number of vertical grid spaces
 		gs2 = gs/2;                 // half grid space
 		df = predsec * fps;
-		vs = parent.width / (float)wscreen;
+		vs = parent.width / (float) wscreen;
 		flowScale = vs;
 		PApplet.println("vs = "+ vs);
 		// arrays
