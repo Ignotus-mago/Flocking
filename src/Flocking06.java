@@ -178,6 +178,8 @@ public class Flocking06 extends PApplet {
 	int selectedBoidState = 0;
 	PImage glitchImage;
 	BlueStyle obstacles;
+	/** threshold at which flow vector magnitude squared triggers drawing */
+	float flowMagThresh = 100;
 	
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/boids";
 	String basename = "vtboids";
@@ -601,6 +603,7 @@ public class Flocking06 extends PApplet {
 		else tBoid.setCohesionDistance(coh);
 		*/
 		tBoid.setDisplaying(flockIsDisplaying);
+		tBoid.setMaxDistance(boidMaxDistance());
 		Turtle t = tBoid.getTurtle();
 		// fewer trails, less memory required
 		t.setMaxTrails(8);
@@ -613,6 +616,15 @@ public class Flocking06 extends PApplet {
 		if (!flockIsDrawing) t.penUp();
 		flock.addBoid(tBoid);
 		return tBoid;
+	}
+	
+
+	/**
+	 * @return   a float to serve as maxDistance for a Turtle
+	 */
+	float boidMaxDistance() {
+		float[] distanceList = {233, 377, 610, 987, 1536};
+		return rando.randomElement(distanceList);
 	}
 	
 	 float[] bluenoise = {116.002f, 552.909f, 795.396f, 588.671f, 1522.72f, 549.958f,
@@ -833,27 +845,11 @@ public class Flocking06 extends PApplet {
 		t += inc;
 		if (divisor < 4096 && isWindy) divisor++;
 		evitar();
-		if (dashedLine /* && 20 == step % 21 */) {
-			// toggleDrawing();
-			GroupComponent g = new GroupComponent(this);
-			for (Boid tBoid : flock.getBoids()) {
-				Turtle t = ((TurtleBoid) tBoid).getTurtle();
-				float x = (float) t.getTurtleX();
-				float y = (float) t.getTurtleY();
-				// int farb = t.strokeColor();
-				// BezShape blob = this.createBlob(5, 2, 0.01f, 0.01f, 0.01f, random(0, PI/4), x, y, farb);
-				BezShape blob = makeBlob(x, y);
-				g.add(blob);
-				blob.draw(pg);
-			}
-			this.gList.add(g);
-			// draw blobs only once at current position
-			dashedLine = false;
-		}
+		// deleted dashed line code here
 		inc = PApplet.PI/divisor;
 		// step++;
 		// fade the background
-		if (frameCount % 240 == 0) {
+		if (frameCount % 30 == 0) {
 			pg.fill(255, 10);
 			pg.noStroke();
 			pg.rect(0, 0, width, height);
@@ -883,10 +879,18 @@ public class Flocking06 extends PApplet {
 	 */
 	public void evitar() {
 		if (!isVideoReady) return;
+		// add in the vectors from video motion flow
 		for (Boid tBoid : flock.getBoids()) {
 			PVector vec = optical.getFlow(tBoid.getLoc());
 			// tBoid.avoid(vec, avoidance);
 			tBoid.applyForce(vec);
+			// activate drawing if vec magnitude exceeds threshold
+			if ( vec.magSq() > flowMagThresh && !((TurtleBoid) tBoid).getTurtle().isPenDown() ) {
+				((TurtleBoid) tBoid).getTurtle().penDown();
+				((TurtleBoid) tBoid).setDistance(0);
+				((TurtleBoid) tBoid).setMaxDistance(boidMaxDistance());
+				// println("---- force activated pen ----");
+			}
 		}
 		if (isUseBlue) {
 			for (Boid tBoid : flock.getBoids()) {
@@ -2081,7 +2085,7 @@ public class Flocking06 extends PApplet {
 	
 	/************* VideoResponder Class *************/
 
-	boolean skipAction = true;
+	boolean skipAction = false;
 	class VideoResponder implements VideoCallbackINF {
 		float actionThreshold = 0.5f;
 		float sepMax = 233;
@@ -2129,7 +2133,7 @@ public class Flocking06 extends PApplet {
 				if (mag2 > actionThreshold) {
 					markGrid((int)btn2.x, (int)btn2.y, color2);
 					if (millis() - evtTimer < evtDebounce) return;
-					//n1.setValue(max(sep - 1, sepMin));
+					n1.setValue(max(sep - 1, sepMin));
 					evtTimer = millis();
 				}
 				else if (mag4 > actionThreshold) {
@@ -2145,6 +2149,7 @@ public class Flocking06 extends PApplet {
 					markGrid((int)btn3.x, (int)btn3.y, color3);
 					if (millis() - evtTimer < evtDebounce) return;
 					erase();
+					startDrawing();
 					evtTimer = millis();
 				}
 			}
