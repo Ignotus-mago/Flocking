@@ -110,13 +110,14 @@ public class Boid {
 		acc.add(backoff);
 	}
 	
-
+	
+	// TODO set stroke and fill of boid image through variables and methods
 	public void render() {
 		if (isVisible) {
 			// Draw a triangle rotated in the direction of velocity
 			float theta = vel.heading() + PApplet.radians(90);
-			parent.fill(175);
-			parent.stroke(0);
+			parent.fill(192);
+			parent.stroke(96);
 			parent.strokeWeight(1.0f);
 			parent.pushMatrix();
 			parent.translate(loc.x,loc.y);

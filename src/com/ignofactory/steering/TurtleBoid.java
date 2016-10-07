@@ -52,6 +52,9 @@ public class TurtleBoid extends Boid implements ColorableINF {
 		super.render();
 		if (isDisplaying && turtle.isPenDown()) {
 			turtle.drawCurrent();
+//			if (1 == this.id) {
+//				System.out.println("---- Turtle id 1 is drawing.");
+//			}
 		}
 	}
 	
