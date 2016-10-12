@@ -143,7 +143,7 @@ public class Flocking06 extends PApplet {
 	int numberOfBoids = 8;
 	int totalBoids = 23;
 	boolean isPaused = false;
-	boolean isShowBoids = false;
+	boolean isShowBoids = true;
 	boolean isShowVideo = false;
 	boolean isVideoReady = false;
 	float avoidance;
@@ -174,7 +174,7 @@ public class Flocking06 extends PApplet {
 	int displayWidth;
 	int displayHeight;
 	PImage maskImage;
-	boolean isAutoRun = false;
+	boolean isAutoRun = true;
 	int selectedBoidState = 0;
 	PImage glitchImage;
 	BlueStyle obstacles;
@@ -188,6 +188,7 @@ public class Flocking06 extends PApplet {
 	IgnoCodeLib igno;
 	
 	String[] videoDevices;
+	int boidTrailsMax = 1;
 
 	
 	/**
@@ -201,7 +202,7 @@ public class Flocking06 extends PApplet {
 	public void setup() {
 		// for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
 		// other proportions will distort video but can be useful
-		size(1597, 987);
+		size(1280, 720);
 		smooth();
 		frameRate = 15;
 		displayWidth = width;
@@ -218,7 +219,7 @@ public class Flocking06 extends PApplet {
 		flock = new Flock();                   // Add an initial set of boids into the system
 		flockIsDrawing = true;
 		flockIsDisplaying = true;
-		totalBoids = 625;
+		totalBoids = 233;
 		initBoidStateList();                   // create up a menu of different sets of cohesion, separation, and alignment values
 		// assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 0.8f);
 		// start out with specific separation, alignment and cohesion values for boids
@@ -230,14 +231,15 @@ public class Flocking06 extends PApplet {
 		// placement = BoidPlacement.CENTER;
 		controlP5 = new ControlP5(this);       // initialize ControlP5
 		loadPanel();                           // load our control panel
-		// we want to show the panel to begin with, to pick a video device
-		// controlP5.hide();
+		// we _usually_ want to show the panel to begin with, to pick a video device, 
+		// but not in an automated installation
+		controlP5.hide();
 		printHelp();
 		// println("PHI = "+ PHI);
 		println("Please choose a video capture device from the popup menu.");
 		if (!isVideoReady) { 
 			// you'll need to figure out your own values for setupVideo, especially the camera name
-			// a call to printDevices can tell you waht you have available.
+			// a call to printDevices can tell you what you have available.
 			setupVideo(videoWidth, videoHeight, 30, 8, 0.25f, "FaceTime HD Camera");
 			if (!isVideoReady) exit();
 		}
@@ -606,7 +608,7 @@ public class Flocking06 extends PApplet {
 		tBoid.setMaxDistance(boidMaxDistance());
 		Turtle t = tBoid.getTurtle();
 		// fewer trails, less memory required
-		t.setMaxTrails(8);
+		t.setMaxTrails(boidTrailsMax);
 		// line weight
 		t.setWeight(weight);
 		float w = (float) rando.gauss(weight, 0.01);
@@ -786,17 +788,16 @@ public class Flocking06 extends PApplet {
 		if (!isShowVideo) {
 			// already done
 			// PImage img = loadImageAlpha(glitchImage, 127);
-			if (width == pg.width && height == pg.height) background(pg);
+			if (width == pg.width && height == pg.height) {
+				background(pg);
+			}
 			else {
 				pg.resize(width, height);
 				background(pg);
 				println("width = "+ width +", height = "+ height);
 				println("pg.width = "+ pg.width +", pg.height = "+ pg.height);
 			}
-			// can only call noSmooth() in setup() in Processing 3.x
-			// noSmooth();
 			image(glitchImage, 0, 0, width, height);
-			smooth();
 		}
 		if (isVideoReady) {
 			optical.flow();
@@ -1004,8 +1005,8 @@ public class Flocking06 extends PApplet {
 			gList.clear(); 
 		}
 		else if (key == 'X') {
-			erase();
-			gList.clear();
+			bgErase(32);
+			// gList.clear();
 		}
 		else if (key == 'p' || key == 'P') {
 			isPaused = !isPaused;
@@ -1899,8 +1900,16 @@ public class Flocking06 extends PApplet {
 		for (Boid tBoid : flock.getBoids()) {
 			((TurtleBoid) tBoid).getTurtle().clear();
 		}
+		bgErase();
+	}
+	
+	public void bgErase() {
 		pg.background(255);
-		drawOffscreen(pg);
+		drawOffscreen(pg);	
+	}
+	public void bgErase(int opacity) {
+		pg.background(255, opacity);
+		drawOffscreen(pg);	
 	}
 		
 	/**
@@ -2090,14 +2099,27 @@ public class Flocking06 extends PApplet {
 		float actionThreshold = 0.5f;
 		float sepMax = 233;
 		float sepMin = 3.0f;
-		int evtTimer;
-		int evtDebounce = 120;
+		int evtTimer1, evtTimer2, evtTimer3, evtTimer4 = millis();
+		int evtDebounce = 240;
 		int inset = 120; 
-		PVector btn1 = new PVector(inset, inset);
-		PVector btn2 = new PVector(inset, height - inset);
-		PVector btn3 = new PVector(width - inset, height - inset);
-		PVector btn4 = new PVector(width - inset, inset);
-		
+		PVector btn1 = new PVector(inset, inset);                      // top left
+		PVector btn2 = new PVector(inset, height - inset);             // bottom left
+		PVector btn3 = new PVector(width - inset, height - inset);     // bottom right
+		PVector btn4 = new PVector(width - inset, inset);              // top right
+		int color1 = color(233, 89, 55);              // red (top left button)
+		int color2 = color(55, 233, 144);             // green (bottom left button)
+		int color3 = color(55, 21, 233);              // blue (top right button)
+		int color4 = color(220, 165, 55);             // yellow (bottom right button)
+		int inactive = color(216, 216, 216, 192);     // gray (inactive state)
+		int maxBoids = 1024;
+		int minBoids = 8;
+		float flowMin = 999999999f;
+		float flowMax = 0;
+		float minTrigger = 1.0f;
+		float maxTrigger = 20.0f;
+		boolean isMinState = false;
+		boolean isMaxState = false;
+
 		@Override
 		public void videoCallback(Capture video) {
 			// get the video image, give it an alpha channel and draw it on our display
@@ -2117,52 +2139,87 @@ public class Flocking06 extends PApplet {
 		@Override
 		public void actionCallback(Capture video) {
 			if (skipAction) return;
+			float flowRate = optical.getTotalFlowSquareMagAv();
+			if (flowRate < minTrigger && !isMinState) {
+				erase();
+				isMinState = true;
+				isMaxState = false;
+				println("-------- min state --------");
+			} 
+			else if (flowRate > maxTrigger && !isMaxState) {
+				decode('a');
+				isMaxState = true;
+				isMinState = false;
+				println("-------- MAX state --------");
+			}
+			/*
+			if (flowRate < flowMin) {
+				flowMin = flowRate;
+				println("flowMin = "+ flowMin);
+			}
+			else if (flowRate > flowMax) {
+				flowMax = flowRate;
+				println("flowMax = "+ flowMax);
+			}
+			*/
+			/*
 			// trigger call to setSeparation() by setting the number box, avoid recursion
 			Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
 			float mag1 = optical.getFlow(btn1).mag();
 			float mag2 = optical.getFlow(btn2).mag();
 			float mag3 = optical.getFlow(btn3).mag();
 			float mag4 = optical.getFlow(btn4).mag();
-			int color1 = color(233, 89, 55);
-			int color2 = color(55, 233, 144);
-			int color3 = color(55, 21, 233);
-			int color4 = color(220, 165, 55);
-			int color5 = color(216, 216, 216);
+			int now = millis();
+			// top left
 			if (mag1 > actionThreshold) {
 				markGrid((int)btn1.x, (int)btn1.y, color1);
-				if (mag2 > actionThreshold) {
-					markGrid((int)btn2.x, (int)btn2.y, color2);
-					if (millis() - evtTimer < evtDebounce) return;
-					n1.setValue(max(sep - 1, sepMin));
-					evtTimer = millis();
-				}
-				else if (mag4 > actionThreshold) {
-					markGrid((int)btn4.x, (int)btn4.y, color4);
-					if (millis() - evtTimer < evtDebounce) return;
-					assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
-					evtTimer = millis();
-				}
+				if (now - evtTimer1 > evtDebounce) {
+					// perform an action and reset the timer
+					if (totalBoids < maxBoids) addBoids();
+					evtTimer1 = now;					
+				} 
 			}
-			else if (mag2 > actionThreshold) {
+			else {
+				markGrid((int)btn1.x, (int)btn1.y, inactive);				
+			}
+			// bottom left
+			if (mag2 > actionThreshold) {
 				markGrid((int)btn2.x, (int)btn2.y, color2);
-				if (mag3 > actionThreshold) {
-					markGrid((int)btn3.x, (int)btn3.y, color3);
-					if (millis() - evtTimer < evtDebounce) return;
-					erase();
-					startDrawing();
-					evtTimer = millis();
+				if (now - evtTimer2 > evtDebounce) {
+					// perform an action and reset the timer
+					bgErase(64);
+					evtTimer2 = now;					
 				}
 			}
-			else if (mag3 > actionThreshold) {
+			else {
+				markGrid((int)btn2.x, (int)btn2.y, inactive);
+			}
+			// bottom right
+			if (mag3 > actionThreshold) {
 				markGrid((int)btn3.x, (int)btn3.y, color3);
-				if (mag4 > actionThreshold) {
-					markGrid((int)btn4.x, (int)btn4.y, color4);
-					if (millis() - evtTimer < evtDebounce) return;
-					n1.setValue(min(sep + 1, sepMax));
-					evtTimer = millis();
+				if (now - evtTimer3 > evtDebounce) {
+					// perform an action and reset the timer
+					decode('a');
+					evtTimer3 = now;					
 				}
+			}
+			else {
+				markGrid((int)btn2.x, (int)btn2.y, inactive);
+			}
+			// top right
+			if (mag4 > actionThreshold) {
+				markGrid((int)btn4.x, (int)btn4.y, color4);		
+				if (now - evtTimer4 > evtDebounce) {
+					// perform an action and reset the timer
+					if (totalBoids > minBoids) subtractBoids();
+					evtTimer4 = now;					
+				}
+			}
+			else {
+				markGrid((int)btn4.x, (int)btn4.y, inactive);								
 			}
 			adjustFlock();
+			*/
 		}
 		
 		public void markGrid(int x, int y, int fillColor) {
