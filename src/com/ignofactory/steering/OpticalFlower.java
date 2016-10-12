@@ -547,6 +547,19 @@ public class OpticalFlower {
 		return flowList;
 	}
 
+	public float getTotalFlowSquareMag() {
+		float sum = 0;
+		for (int i = 0; i < flowList.length; i++) {
+			sum += flowList[i].magSq();
+		}
+		return sum;
+	}
+	
+	public float getTotalFlowSquareMagAv() {
+		return getTotalFlowSquareMag()/flowList.length;
+	}
+
+	
 	public void toggleImageDisplay() {
 		flagimage = !flagimage;
 		PApplet.println("flagimage = "+ flagimage);
