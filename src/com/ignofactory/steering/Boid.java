@@ -116,8 +116,8 @@ public class Boid {
 		if (isVisible) {
 			// Draw a triangle rotated in the direction of velocity
 			float theta = vel.heading() + PApplet.radians(90);
-			parent.fill(192);
-			parent.stroke(96);
+			parent.fill(255);
+			parent.stroke(0);
 			parent.strokeWeight(1.0f);
 			parent.pushMatrix();
 			parent.translate(loc.x,loc.y);
