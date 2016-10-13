@@ -1,0 +1,1 @@
+enum BlueStyle {BLUE, CIRCLE, BLOB, CORNERBLOB, OPENBLOB;}
