@@ -887,6 +887,7 @@ public class Flocking06 extends PApplet {
 					addBoids();
 				}
 			}
+			adjustFlock();
 		}
 	}
 	

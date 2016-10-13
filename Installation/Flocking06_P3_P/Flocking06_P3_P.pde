@@ -176,7 +176,6 @@ int videoHeight;
 int displayWidth;
 int displayHeight;
 PImage maskImage;
-boolean isAutoRun = true;
 int selectedBoidState = 0;
 PImage glitchImage;
 BlueStyle obstacles;
@@ -191,6 +190,9 @@ IgnoCodeLib igno;
 
 String[] videoDevices;
 int boidTrailsMax = 1;
+
+boolean isAutoRun = false;
+boolean isUseButtons = false;
 
 public void setup() {
   // for "best" results, make displayWidth/displayHeight == videoWidth/videoHeight
@@ -215,8 +217,12 @@ public void setup() {
   initBoidStateList();                   // create up a menu of different sets of cohesion, separation, and alignment values
   // assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 0.8f);
   // start out with specific separation, alignment and cohesion values for boids
-  sep = 21; align = 47; coh = 89;
-  sepFac = sep; alignFac = align; cohFac = coh;
+  sep = 21; 
+  align = 47; 
+  coh = 89;
+  sepFac = sep; 
+  alignFac = align; 
+  cohFac = coh;
   useFactors = true;
   placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
   println("placement = "+ placement.toString());
@@ -268,8 +274,7 @@ public void setupVideo(int w, int h, int fps, int grid, float timespan, String d
   // optical = new OpticalFlower(this, width, height, 20, 0.5f, "Built-in iSight");
   if (null == optical) {
     optical = new OpticalFlower(this, w, h, fps, grid, timespan, device);
-  }
-  else {
+  } else {
     optical.setVideoParams(w, h, fps, grid, timespan, device);
   }
   isVideoReady = optical.init();
@@ -277,14 +282,12 @@ public void setupVideo(int w, int h, int fps, int grid, float timespan, String d
     println("***** Video failed to initialize. Please check that you are using an available device and settings. *****");
     println("***** Select device and settings from the following list: *****");
     printDevices();
-  }
-  else {
+  } else {
     optical.setFlowColor(color(233, 220, 199, 127));
     optical.setImageFlowColor(color(144, 110, 233, 255));
     if (isShowVideo) {
       optical.showImage();
-    }
-    else {
+    } else {
       optical.hideImage();
     }
     videoResponder = new VideoResponder();
@@ -367,8 +370,7 @@ public void initBoidStateList() {
 public void assignBoidState(int i, float scale) {
   if (i >= boidStateList.size()) {
     i = i % boidStateList.size();
-  }
-  else if (i < 0) {
+  } else if (i < 0) {
     i = boidStateList.size() - (-i % boidStateList.size());
   }
   BoidState state = boidStateList.get(i);
@@ -438,141 +440,149 @@ public void setBoidDrawStyle(ArrayList<Boid> someBoids) {
 public void placeBoids(ArrayList<Boid> someBoids) {
   println("placement = "+ placement.toString());
   switch (placement) {
-  case RANDOM: {
-    for (Boid tBoid : someBoids) {
-      PVector loc = new PVector(random(0, width), random(0, height));
-      tBoid.setLoc(loc);
-    }
-    break;
-  }
-  case CENTER: {
-    for (Boid tBoid : someBoids) {
-      tBoid.setLoc(new PVector(width/2, height/2));
-    }
-    break;
-  }
-  case RANDOMCENTER: {
-    int xctr = -1;
-    while ((xctr < 0) || (xctr > width)) {
-      xctr = (int) rando.gauss(width/2, width * 24);
-    }
-    int yctr = -1;
-    while ((yctr < 0) || (yctr > height)) {
-      yctr = (int) rando.gauss(height/2, height * 24);
-    }
-    println("xctr = "+ xctr +", yctr = "+ yctr);
-    for (Boid tBoid : someBoids) {
-      int x = (int) rando.gauss(xctr, width);
-      int y = (int) rando.gauss(yctr, height);
-      tBoid.setLoc(new PVector(x, y));
-    }
-    break;
-  }
-  case GRID: {
-    int q = 1;
-    while (q * q < someBoids.size()) q++;
-    println("Grid with "+ q +" rows and "+ q +" columns");
-    float xStep = (float) Math.floor(width/q);
-    float yStep = (float) Math.floor(height/q);
-    float xStart = xStep/2.0f;
-    float yStart = yStep/2.0f;
-    ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
-    for (int i = 0; i < q; i++) {
-      for (int j = 0; j < q; j++) {
-        gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+  case RANDOM: 
+    {
+      for (Boid tBoid : someBoids) {
+        PVector loc = new PVector(random(0, width), random(0, height));
+        tBoid.setLoc(loc);
       }
+      break;
     }
-    rando.shuffle((ArrayList)gridPoints);
-    int i = 0;
-    for (Boid tBoid : someBoids) {
-      tBoid.setLoc(gridPoints.get(i++));
-    }
-    break;
-  }
-  case CENTERGRID: {
-    int q = 1;
-    while (q * q < someBoids.size()) q++;
-    println("Grid with "+ q +" rows and "+ q +" columns");
-    float xStep = (float) Math.floor(width/(q * 2));
-    float yStep = (float) Math.floor(height/(q * 2));
-    float xStart = xStep/2.0f + 0.25f * width;
-    float yStart = yStep/2.0f + 0.25f * height;
-    ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
-    for (int i = 0; i < q; i++) {
-      for (int j = 0; j < q; j++) {
-        gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+  case CENTER: 
+    {
+      for (Boid tBoid : someBoids) {
+        tBoid.setLoc(new PVector(width/2, height/2));
       }
+      break;
     }
-    rando.shuffle((ArrayList)gridPoints);
-    int i = 0;
-    for (Boid tBoid : someBoids) {
-      tBoid.setLoc(gridPoints.get(i++));
-    }
-    break;
-  }
-  case GRIDTRIPLETS: {
-    int q = 1;
-    int limit = someBoids.size()/3;
-    while (q * q < limit) q++;
-    println("Grid with "+ q +" rows and "+ q +" columns");
-    float xStep = (float) Math.floor(width/q);
-    float yStep = (float) Math.floor(height/q);
-    float xStart = xStep/2.0f;
-    float yStart = yStep/2.0f;
-    ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
-    for (int i = 0; i < q; i++) {
-      for (int j = 0; j < q; j++) {
-        gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+  case RANDOMCENTER: 
+    {
+      int xctr = -1;
+      while ((xctr < 0) || (xctr > width)) {
+        xctr = (int) rando.gauss(width/2, width * 24);
       }
-    }
-    rando.shuffle((ArrayList)gridPoints);
-    for (int i = 0; i < limit; i++) {
-      PVector loc = gridPoints.get(i);
-      for (int j = 0; j < 3; j++) {
-        Boid tBoid = someBoids.get(i * 3 + j);
-        tBoid.setLoc(new PVector(loc.x, loc.y));          
+      int yctr = -1;
+      while ((yctr < 0) || (yctr > height)) {
+        yctr = (int) rando.gauss(height/2, height * 24);
       }
+      println("xctr = "+ xctr +", yctr = "+ yctr);
+      for (Boid tBoid : someBoids) {
+        int x = (int) rando.gauss(xctr, width);
+        int y = (int) rando.gauss(yctr, height);
+        tBoid.setLoc(new PVector(x, y));
+      }
+      break;
     }
-    break;
-  }
+  case GRID: 
+    {
+      int q = 1;
+      while (q * q < someBoids.size()) q++;
+      println("Grid with "+ q +" rows and "+ q +" columns");
+      float xStep = (float) Math.floor(width/q);
+      float yStep = (float) Math.floor(height/q);
+      float xStart = xStep/2.0f;
+      float yStart = yStep/2.0f;
+      ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
+      for (int i = 0; i < q; i++) {
+        for (int j = 0; j < q; j++) {
+          gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+        }
+      }
+      rando.shuffle((ArrayList)gridPoints);
+      int i = 0;
+      for (Boid tBoid : someBoids) {
+        tBoid.setLoc(gridPoints.get(i++));
+      }
+      break;
+    }
+  case CENTERGRID: 
+    {
+      int q = 1;
+      while (q * q < someBoids.size()) q++;
+      println("Grid with "+ q +" rows and "+ q +" columns");
+      float xStep = (float) Math.floor(width/(q * 2));
+      float yStep = (float) Math.floor(height/(q * 2));
+      float xStart = xStep/2.0f + 0.25f * width;
+      float yStart = yStep/2.0f + 0.25f * height;
+      ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
+      for (int i = 0; i < q; i++) {
+        for (int j = 0; j < q; j++) {
+          gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+        }
+      }
+      rando.shuffle((ArrayList)gridPoints);
+      int i = 0;
+      for (Boid tBoid : someBoids) {
+        tBoid.setLoc(gridPoints.get(i++));
+      }
+      break;
+    }
+  case GRIDTRIPLETS: 
+    {
+      int q = 1;
+      int limit = someBoids.size()/3;
+      while (q * q < limit) q++;
+      println("Grid with "+ q +" rows and "+ q +" columns");
+      float xStep = (float) Math.floor(width/q);
+      float yStep = (float) Math.floor(height/q);
+      float xStart = xStep/2.0f;
+      float yStart = yStep/2.0f;
+      ArrayList<PVector> gridPoints = new ArrayList<PVector>(q * q);
+      for (int i = 0; i < q; i++) {
+        for (int j = 0; j < q; j++) {
+          gridPoints.add(new PVector(xStart + i * xStep, yStart + j * yStep));
+        }
+      }
+      rando.shuffle((ArrayList)gridPoints);
+      for (int i = 0; i < limit; i++) {
+        PVector loc = gridPoints.get(i);
+        for (int j = 0; j < 3; j++) {
+          Boid tBoid = someBoids.get(i * 3 + j);
+          tBoid.setLoc(new PVector(loc.x, loc.y));
+        }
+      }
+      break;
+    }
   case BLOB: 
-  case BIGBLOB: {
-    float xctr = width/2f;
-    xctr += (float) rando.gauss(0, width/8);
-    float yctr = height/2f;
-    yctr += (float) rando.gauss(0, height/8);
-    BezShape blob = makeBlob(xctr, yctr);
-    BezRectangle rect = blob.boundsRect();
-    float xScale = 0.55f * width/rect.getWidth();
-    float yScale = 0.55f * height/rect.getHeight();
-    if (placement == placement.BIGBLOB) {
-      xScale = 0.89f * width/rect.getWidth();
-      yScale = 0.89f * height/rect.getHeight();
-    }
-    if (xScale > yScale) blob.scaleShape(yScale);
-    else blob.scaleShape(xScale);
-    rect = blob.boundsRect();
-    float left = rect.getLeft();
-    float right = rect.getRight();
-    float top = rect.getTop();
-    float bottom = rect.getBottom();
-    for (Boid tBoid : someBoids) {
-      float x = rando.randomInRange(left, right);
-      float y = rando.randomInRange(top, bottom);
-      while (!blob.containsPoint(x, y)) {
-        x = rando.randomInRange(left, right);
-        y = rando.randomInRange(top, bottom);
+  case BIGBLOB: 
+    {
+      float xctr = width/2f;
+      xctr += (float) rando.gauss(0, width/8);
+      float yctr = height/2f;
+      yctr += (float) rando.gauss(0, height/8);
+      BezShape blob = makeBlob(xctr, yctr);
+      BezRectangle rect = blob.boundsRect();
+      float xScale = 0.55f * width/rect.getWidth();
+      float yScale = 0.55f * height/rect.getHeight();
+      if (placement == placement.BIGBLOB) {
+        xScale = 0.89f * width/rect.getWidth();
+        yScale = 0.89f * height/rect.getHeight();
       }
-      tBoid.setLoc(new PVector(x, y));
+      if (xScale > yScale) blob.scaleShape(yScale);
+      else blob.scaleShape(xScale);
+      rect = blob.boundsRect();
+      float left = rect.getLeft();
+      float right = rect.getRight();
+      float top = rect.getTop();
+      float bottom = rect.getBottom();
+      for (Boid tBoid : someBoids) {
+        float x = rando.randomInRange(left, right);
+        float y = rando.randomInRange(top, bottom);
+        while (!blob.containsPoint(x, y)) {
+          x = rando.randomInRange(left, right);
+          y = rando.randomInRange(top, bottom);
+        }
+        tBoid.setLoc(new PVector(x, y));
+      }
+      break;
     }
-    break;
-  }
-  default: {
-    for (Boid tBoid : someBoids) {
-      tBoid.setLoc(new PVector(random(0, width), random(0, height)));
+  default: 
+    {
+      for (Boid tBoid : someBoids) {
+        tBoid.setLoc(new PVector(random(0, width), random(0, height)));
+      }
     }
   }
-  }   
 }
 
 
@@ -593,15 +603,15 @@ public Boid addOneBoid(float x, float y) {
   //
   /*
   float separation = (float) rando.gauss(sep, 0.005);
-  if (separation > 0) tBoid.setSeparationDistance(separation);
-  else tBoid.setSeparationDistance(sep);
-  float alignment = (float) rando.gauss(align, 0.005);
-  if (alignment > 0) tBoid.setAlignmentDistance(alignment);
-  else tBoid.setAlignmentDistance(align);
-  float cohesion = (float) rando.gauss(coh, 0.005);
-  if (cohesion > 0) tBoid.setCohesionDistance(cohesion);
-  else tBoid.setCohesionDistance(coh);
-  */
+   if (separation > 0) tBoid.setSeparationDistance(separation);
+   else tBoid.setSeparationDistance(sep);
+   float alignment = (float) rando.gauss(align, 0.005);
+   if (alignment > 0) tBoid.setAlignmentDistance(alignment);
+   else tBoid.setAlignmentDistance(align);
+   float cohesion = (float) rando.gauss(coh, 0.005);
+   if (cohesion > 0) tBoid.setCohesionDistance(cohesion);
+   else tBoid.setCohesionDistance(coh);
+   */
   tBoid.setDisplaying(flockIsDisplaying);
   tBoid.setMaxDistance(boidMaxDistance());
   Turtle t = tBoid.getTurtle();
@@ -627,124 +637,128 @@ float boidMaxDistance() {
   return rando.randomElement(distanceList);
 }
 
- float[] bluenoise = {116.002f, 552.909f, 795.396f, 588.671f, 1522.72f, 549.958f,
-     1601.45f, 301.583f, 456.625f, 520.227f, 829.933f, 423.29f, 625.748f, 92.9207f,
-     1127.25f, 433.887f, 48.4038f, 134.565f, 223.59f, 283.084f, 1079.5f, 247.117f,
-     1238.43f, 599.472f, 1648.33f, 44.4122f, 1084.71f, 82.9729f, 633.237f, 518.39f,
-     260.96f, 476.742f, 726.323f, 242.086f, 1298.8f, 153.001f, 56.3434f, 332.905f,
-     1255.27f, 332.292f, 1731.34f, 194.366f, 1002.54f, 530.887f, 1803.97f, 529.137f,
-     1688.77f, 432.702f, 591.905f, 356.409f, 1430.28f, 342.82f, 389.749f, 329.543f,
-     227.595f, 102.65f, 380.075f, 49.8877f, 883.949f, 106.836f, 915.726f, 290.936f,
-     1375.25f, 527.002f, 483.907f, 192.45f, 1476.03f, 153.935f};
- ArrayList<PVector> blueVectors = new ArrayList<PVector>();
- float[] blueForce = new float[bluenoise.length/2];
- // float[] blueForceValues = {76, 89, 110, 123, 144, 152, 178, 199, 233, 246, 288, 322, 377};
- // float[] blueForceValues = {21, 29, 34, 47, 55, 76, 89, 110, 123, 144};
- // float[] blueForceValues = {13, 21, 29, 34, 47, 55, 76, 89, 110, 123};
- float[] blueForceValues = {21, 34, 55};
- boolean isUseBlue = false;
- /**
+float[] bluenoise = {116.002f, 552.909f, 795.396f, 588.671f, 1522.72f, 549.958f, 
+  1601.45f, 301.583f, 456.625f, 520.227f, 829.933f, 423.29f, 625.748f, 92.9207f, 
+  1127.25f, 433.887f, 48.4038f, 134.565f, 223.59f, 283.084f, 1079.5f, 247.117f, 
+  1238.43f, 599.472f, 1648.33f, 44.4122f, 1084.71f, 82.9729f, 633.237f, 518.39f, 
+  260.96f, 476.742f, 726.323f, 242.086f, 1298.8f, 153.001f, 56.3434f, 332.905f, 
+  1255.27f, 332.292f, 1731.34f, 194.366f, 1002.54f, 530.887f, 1803.97f, 529.137f, 
+  1688.77f, 432.702f, 591.905f, 356.409f, 1430.28f, 342.82f, 389.749f, 329.543f, 
+  227.595f, 102.65f, 380.075f, 49.8877f, 883.949f, 106.836f, 915.726f, 290.936f, 
+  1375.25f, 527.002f, 483.907f, 192.45f, 1476.03f, 153.935f};
+ArrayList<PVector> blueVectors = new ArrayList<PVector>();
+float[] blueForce = new float[bluenoise.length/2];
+// float[] blueForceValues = {76, 89, 110, 123, 144, 152, 178, 199, 233, 246, 288, 322, 377};
+// float[] blueForceValues = {21, 29, 34, 47, 55, 76, 89, 110, 123, 144};
+// float[] blueForceValues = {13, 21, 29, 34, 47, 55, 76, 89, 110, 123};
+float[] blueForceValues = {21, 34, 55};
+boolean isUseBlue = false;
+/**
  * Intializes locations that attract or repel boids. 
  * Locations may be determined by blue noise or any other distribution you like.
  * Experimental code.
  */
- public void initBlueNoise() {
-   if (null == obstacles) obstacles = BlueStyle.BLOB;
-   blueVectors.clear();
-   switch (obstacles) {
-   case BLUE: {
-     float hscale = width * 0.00055f;
-     float vscale = width * 0.0005f;
-     for (int i = 0; i < bluenoise.length/4; i++) {
-       float x = bluenoise[2 * i] * hscale;
-       float y = bluenoise[2 * i + 1] * vscale + height/4.0f;
-       blueVectors.add(new PVector(x, y));
-       // println("blue vectors element "+ i +" = "+ x +", "+ y);
-     }
-     break;
-   }
-   case CIRCLE: {
-     float k = (float) rando.gauss(0.375, 0.0125);
-     float radius = width > height ? k * height : k * width;
-     int sides = 123;
-     float xctr = width/2f;
-     float yctr = height/2f;
-     double ang = GeomUtils.TWO_PI/sides;
-     Matrix3 matx = new Matrix3();
-     matx.translateCTM(-xctr, -yctr);
-     matx.rotateCTM(ang);
-     matx.translateCTM(xctr, yctr);
-     Point2D.Double pt = new Point2D.Double(xctr, yctr - radius);
-     for (int i = 0; i < sides; i++) {
-       pt = matx.multiplyPointByNormalCTM(pt.x, pt.y, pt);
-       blueVectors.add(new PVector((float) (pt.getX() + rando.gauss(0, 128)), (float) (pt.getY() + rando.gauss(0, 128))));
-     }
-     break;
-   }
-   case BLOB: 
-   case CORNERBLOB: {
-     float xctr = width/2f;
-     xctr += (float) rando.gauss(0, width/8);
-     float yctr = height/2f;
-     yctr += (float) rando.gauss(0, height/8);
-     if (obstacles == BlueStyle.CORNERBLOB) {
-       xctr += width/2f;
-       yctr += height/2f;
-     }
-     BezShape blob = makeBlob(xctr, yctr);
-     BezRectangle rect = blob.boundsRect();
-     float xScale = 0.75f * width/rect.getWidth();
-     float yScale = 0.75f * height/rect.getHeight();
-     blob.scaleShape(xScale, yScale);
-     blob.asPolygon(16);
-     float[] xcoords = blob.xcoords();
-     float[] ycoords = blob.ycoords();
-     for (int i = 0; i < xcoords.length; i++) {
-       blueVectors.add(new PVector(xcoords[i], ycoords[i]));
-     }
-     break;
-   }
-   case OPENBLOB: {
-     float xctr = width/2f;
-     xctr += (float) rando.gauss(0, width/8);
-     float yctr = height/2f;
-     yctr += (float) rando.gauss(0, height/8);
-     BezShape blob = makeBlob(xctr, yctr);
-     BezRectangle rect = blob.boundsRect();
-     float xScale = 0.75f * width/rect.getWidth();
-     float yScale = 0.75f * height/rect.getHeight();
-     blob.scaleShape(xScale, yScale);
-     blob.asPolygon(12);
-     float[] xcoords = blob.xcoords();
-     float[] ycoords = blob.ycoords();
-     int ct = xcoords.length;
-     int start = 2 * (int) Math.floor(rando.randomInRange(0, ct)/2f);
-     int len = (int) rando.randomInRange(ct/8, ct/4);
-     int end = start + len;
-     for (int i = 0; i < xcoords.length; i++) {
-       if ((i > start) && (i < end)) continue;
-       blueVectors.add(new PVector(xcoords[i], ycoords[i]));
-     }
-     break;
-   }
-   default: {
-     
-   }
-   }
-   isUseBlue = true;
- }
- 
- /**
+public void initBlueNoise() {
+  if (null == obstacles) obstacles = BlueStyle.BLOB;
+  blueVectors.clear();
+  switch (obstacles) {
+  case BLUE: 
+    {
+      float hscale = width * 0.00055f;
+      float vscale = width * 0.0005f;
+      for (int i = 0; i < bluenoise.length/4; i++) {
+        float x = bluenoise[2 * i] * hscale;
+        float y = bluenoise[2 * i + 1] * vscale + height/4.0f;
+        blueVectors.add(new PVector(x, y));
+        // println("blue vectors element "+ i +" = "+ x +", "+ y);
+      }
+      break;
+    }
+  case CIRCLE: 
+    {
+      float k = (float) rando.gauss(0.375, 0.0125);
+      float radius = width > height ? k * height : k * width;
+      int sides = 123;
+      float xctr = width/2f;
+      float yctr = height/2f;
+      double ang = GeomUtils.TWO_PI/sides;
+      Matrix3 matx = new Matrix3();
+      matx.translateCTM(-xctr, -yctr);
+      matx.rotateCTM(ang);
+      matx.translateCTM(xctr, yctr);
+      Point2D.Double pt = new Point2D.Double(xctr, yctr - radius);
+      for (int i = 0; i < sides; i++) {
+        pt = matx.multiplyPointByNormalCTM(pt.x, pt.y, pt);
+        blueVectors.add(new PVector((float) (pt.getX() + rando.gauss(0, 128)), (float) (pt.getY() + rando.gauss(0, 128))));
+      }
+      break;
+    }
+  case BLOB: 
+  case CORNERBLOB: 
+    {
+      float xctr = width/2f;
+      xctr += (float) rando.gauss(0, width/8);
+      float yctr = height/2f;
+      yctr += (float) rando.gauss(0, height/8);
+      if (obstacles == BlueStyle.CORNERBLOB) {
+        xctr += width/2f;
+        yctr += height/2f;
+      }
+      BezShape blob = makeBlob(xctr, yctr);
+      BezRectangle rect = blob.boundsRect();
+      float xScale = 0.75f * width/rect.getWidth();
+      float yScale = 0.75f * height/rect.getHeight();
+      blob.scaleShape(xScale, yScale);
+      blob.asPolygon(16);
+      float[] xcoords = blob.xcoords();
+      float[] ycoords = blob.ycoords();
+      for (int i = 0; i < xcoords.length; i++) {
+        blueVectors.add(new PVector(xcoords[i], ycoords[i]));
+      }
+      break;
+    }
+  case OPENBLOB: 
+    {
+      float xctr = width/2f;
+      xctr += (float) rando.gauss(0, width/8);
+      float yctr = height/2f;
+      yctr += (float) rando.gauss(0, height/8);
+      BezShape blob = makeBlob(xctr, yctr);
+      BezRectangle rect = blob.boundsRect();
+      float xScale = 0.75f * width/rect.getWidth();
+      float yScale = 0.75f * height/rect.getHeight();
+      blob.scaleShape(xScale, yScale);
+      blob.asPolygon(12);
+      float[] xcoords = blob.xcoords();
+      float[] ycoords = blob.ycoords();
+      int ct = xcoords.length;
+      int start = 2 * (int) Math.floor(rando.randomInRange(0, ct)/2f);
+      int len = (int) rando.randomInRange(ct/8, ct/4);
+      int end = start + len;
+      for (int i = 0; i < xcoords.length; i++) {
+        if ((i > start) && (i < end)) continue;
+        blueVectors.add(new PVector(xcoords[i], ycoords[i]));
+      }
+      break;
+    }
+  default: 
+    {
+    }
+  }
+  isUseBlue = true;
+}
+
+/**
  * Initializes maskImage, which is use to fade out the video capture image when it is displayed unde the boids. 
  */
 public void initMask() {
-   maskImage = createImage(width, height, ARGB);
-   int maskColor = color(64, 64, 64, 64);
-   maskImage.loadPixels();
-   for (int i = 0; i < width * height; i++) {
-     maskImage.pixels[i] = maskColor;
-   }
- }
+  maskImage = createImage(width, height, ARGB);
+  int maskColor = color(64, 64, 64, 64);
+  maskImage.loadPixels();
+  for (int i = 0; i < width * height; i++) {
+    maskImage.pixels[i] = maskColor;
+  }
+}
 
 /**
  * Prints some helpful (!) information to the console.
@@ -775,7 +789,7 @@ public void printHelp() {
   // Video-tracking/Optical flow controls:
   println("Press 'f' to show or hide flow lines");
   println("Press 'i' to show or hide video image");
-  println("Press 'h' to show help message"); 
+  println("Press 'h' to show help message");
 }
 
 // TODO overlay all images in correct order (maybe this is already done? not sure /2016/ ).
@@ -787,8 +801,7 @@ public void draw() {
     // PImage img = loadImageAlpha(glitchImage, 127);
     if (width == pg.width && height == pg.height) {
       background(pg);
-    }
-    else {
+    } else {
       pg.resize(width, height);
       background(pg);
       println("width = "+ width +", height = "+ height);
@@ -854,29 +867,32 @@ public void runBoids() {
   }
   // autorun switches state from time to time
   // TODO give autorun a separate method
+  /*
   if (isAutoRun && frameCount % 480 == 0) {
-    float rand = random(0,1);
-    if (rand > 0.5f) {
-      erase();
-      if (rand > 0.5f) {
-        placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
-        println("placement = "+ placement.toString());
-        newBoids();
-      }
-      assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
-    }
-    else if (rand < 0.5f) {
-      assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
-    }
-    else if (rand < 0.33) {
-      if (totalBoids > meanBoids) {
-        subtractBoids();
-      }
-      else if (totalBoids < meanBoids) {
-        addBoids();
-      }
-    }
-  }
+   float rand = random(0,1);
+   if (rand > 0.5f) {
+   erase();
+   if (rand > 0.5f) {
+   placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
+   println("placement = "+ placement.toString());
+   newBoids();
+   }
+   assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
+   }
+   else if (rand < 0.5f) {
+   assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
+   }
+   else if (rand < 0.33) {
+   if (totalBoids > meanBoids) {
+   subtractBoids();
+   }
+   else if (totalBoids < meanBoids) {
+   addBoids();
+   }
+   }
+   }
+   adjustFlock();
+   */
 }
 
 /**
@@ -957,24 +973,20 @@ public void parseKey(char key, int keyCode) {
       for (Boid tBoid : flock.getBoids()) {
         tBoid.turn(radians(-9));
       }
-    }
-    else if (keyCode == RIGHT) {
+    } else if (keyCode == RIGHT) {
       for (Boid tBoid : flock.getBoids()) {
         tBoid.turn(radians(9));
       }
-    }
-    else if (keyCode == UP) {
+    } else if (keyCode == UP) {
       if (keyCode == SHIFT) println("shifted up");
       windspeed += windIncrement;
       if (windspeed > maxWind) windspeed = maxWind;
-    }
-    else if (keyCode == DOWN) {
+    } else if (keyCode == DOWN) {
       if (keyCode == SHIFT) println("shifted down");
       windspeed -= windIncrement;
       if (windspeed <= minWind) windspeed = minWind;
     }
-  } 
-  else {
+  } else {
     decode(key);
   }
 }
@@ -987,15 +999,13 @@ public void decode(char ch) {
   if (key == 'd' || key == 'D') {
     toggleDrawing();
     println("trail drawing is "+ flockIsDrawing);
-  }
-  else if (key == 'r' || key == 'R') {
+  } else if (key == 'r' || key == 'R') {
     flockIsDisplaying = !flockIsDisplaying;
     for (Boid boid : flock.getBoids()) {
       ((TurtleBoid) boid).setDisplaying(flockIsDisplaying);
     }
     println("trail displaying is "+ flockIsDisplaying);
-  }
-  else if (key == 'c' || key == 'C') {
+  } else if (key == 'c' || key == 'C') {
     for (Boid tBoid : flock.getBoids()) {
       Turtle t = ((TurtleBoid)tBoid).getTurtle();
       int tbStrokeColor = t.strokeColor();
@@ -1004,148 +1014,117 @@ public void decode(char ch) {
       colorMode(RGB, 255, 255, 255);
       setShapeStroke(((TurtleBoid) tBoid), targHue, 30);
     }
-  }
-  else if (key == 'x') {
+  } else if (key == 'x') {
     erase();
-    gList.clear(); 
-  }
-  else if (key == 'X') {
+    gList.clear();
+  } else if (key == 'X') {
     bgErase(32);
     // gList.clear();
-  }
-  else if (key == 'p' || key == 'P') {
+  } else if (key == 'p' || key == 'P') {
     isPaused = !isPaused;
-  }
-  else if (key == 's' || key == 'S') {
+  } else if (key == 's' || key == 'S') {
     stopDrawing();
     saveListAI(basename);
-  }
-  else if (key == 'y') {
+  } else if (key == 'y') {
     // reset the obstacles
     initBlueNoise();
-  }
-  else if (key == 'Y') {
+  } else if (key == 'Y') {
     obstacles = BlueStyle.values()[(obstacles.ordinal() + 1) % BlueStyle.values().length];
     // reset the obstacles
     initBlueNoise();
-    println("obstacles = "+ obstacles.toString());          
-  }
-  else if (key == '+' || key == '=') {
+    println("obstacles = "+ obstacles.toString());
+  } else if (key == '+' || key == '=') {
     // trigger call to setSeparation() by setting the number box, avoid recursion
     Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
     n1.setValue(sep + 1);
     adjustFlock();
-  }
-  else if (key == '-' || key == '_') {
+  } else if (key == '-' || key == '_') {
     // trigger call to setSeparation() by setting the number box, avoid recursion
     Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
     n1.setValue(sep - 1);
     adjustFlock();
-  }
-  else if (key == 'w' || key == 'W') {
+  } else if (key == 'w' || key == 'W') {
     isWindy = !isWindy;
     if (isWindy) println("wind is blowing at windspeed "+ windspeed);
     else println("wind is calm");
-  }
-  else if (key == ' ') {
+  } else if (key == ' ') {
     if (controlP5.isVisible()) {
       controlP5.hide();
-    }
-    else {
+    } else {
       controlP5.show();
     }
-  }
-  else if (key == 'v' || key == 'V') {
+  } else if (key == 'v' || key == 'V') {
     isShowBoids = !isShowBoids;
     for (Boid tBoid : flock.getBoids()) {
       tBoid.setVisible(isShowBoids);
     }
-  }
-  else if (key == 't' || key == 'T') {
+  } else if (key == 't' || key == 'T') {
     boolean mapToTorus = !Boid.isMapToTorus();
     Boid.setMapToTorus(mapToTorus);
     if (mapToTorus) println("Mapping to torus");
     else println("Mapping to plane");
-  }
-  else if (key == 'l' || key == 'L') {
+  } else if (key == 'l' || key == 'L') {
     boolean drawLines = !Boid.isDrawCohesionLines();
     Boid.setDrawCohesionLines(drawLines);
-  }
-  else if (key == 'g' || key == 'G') {
+  } else if (key == 'g' || key == 'G') {
     stopOnEdge = !stopOnEdge;
     println("stop on edge = "+ stopOnEdge);
-  }
-  else if (key == 'b' || key == 'B') {
+  } else if (key == 'b' || key == 'B') {
     beginOnEdge = !beginOnEdge;
     println("begin on edge = "+ beginOnEdge);
-  }
-  else if (key == 'm' || key == 'M') {
+  } else if (key == 'm' || key == 'M') {
     testGauss();
-  }
-  else if (key == 'n') {
+  } else if (key == 'n') {
     newBoids();
-  }
-  else if (key == 'N') {
+  } else if (key == 'N') {
     toggleDrawing();
     toggleDrawing();
     placeBoids(flock.getBoids());
-  }
-  else if (key == 'o' || key == 'O') {
+  } else if (key == 'o' || key == 'O') {
     neonEffect = !neonEffect;
     println("neon effect = "+ neonEffect);
-  }
-  else if (key == 'e' || key == 'E') {
+  } else if (key == 'e' || key == 'E') {
     dashedLine = !dashedLine;
-  }
-  else if (key == 'h' || key == 'H') {
+  } else if (key == 'h' || key == 'H') {
     printHelp();
-  }
-  else if (key == 'f' || key == 'F') {
+  } else if (key == 'f' || key == 'F') {
     if (isVideoReady) optical.toggleFlowDisplay();
-  }
-  else if (key == 'i' || key == 'I') {
+  } else if (key == 'i' || key == 'I') {
     if (!isVideoReady) return;
     isShowVideo = !isShowVideo;
     if (isShowVideo) {
       optical.showImage();
-    }
-    else {
+    } else {
       optical.hideImage();
     }
-  }
-  else if (key == 'k' || key == 'K') {
+  } else if (key == 'k' || key == 'K') {
     skipAction = !skipAction;
     println("skipAction = "+ skipAction);
-  }
-  else if (key == 'a') {
+  } else if (key == 'a') {
     selectedBoidState = (selectedBoidState + 1) % boidStateList.size();
     assignBoidState(selectedBoidState, 1f);
     // println("selectedBoidState: "+ selectedBoidState);
-  }
-  else if (key == 'A') {
+  } else if (key == 'A') {
     selectedBoidState = selectedBoidState == 0 ? boidStateList.size() - 1 : (selectedBoidState - 1) % boidStateList.size();
     assignBoidState(selectedBoidState, 1f);
     // println("selectedBoidState: "+ selectedBoidState);
-  }
-  else if (key == 'q') {
+  } else if (key == 'q') {
     //placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
     placement = BoidPlacement.values()[(placement.ordinal() + 1) % BoidPlacement.values().length];
-    println("placement = "+ placement.toString());    
-  }
-  else if (key == 'Q') {
+    println("placement = "+ placement.toString());
+  } else if (key == 'Q') {
     //placement = BoidPlacement.values()[rando.randomInRange(0, BoidPlacement.values().length - 1)];
     placement = placement.ordinal() == 0 ? BoidPlacement.values()[BoidPlacement.values().length - 1] : BoidPlacement.values()[placement.ordinal() - 1];
-    println("placement = "+ placement.toString());    
-  }
-  else if (key == 'j' || key == 'J') {
+    println("placement = "+ placement.toString());
+  } else if (key == 'j' || key == 'J') {
     avoidance = -avoidance;
     println("-- avoidance = "+ avoidance);
-  }
-  else if (key == ';') {
+  } else if (key == ';') {
     if (!isVideoReady) return;
     // dump vector magnitudes as a 2D array
     PVector[] flowList = optical.getFlowList();
-    println(); println();
+    println(); 
+    println();
     int gh = optical.getGh();
     int gw = optical.getGw();
     for (int iy = 0; iy < gh; iy++) {
@@ -1154,9 +1133,9 @@ public void decode(char ch) {
       }
       println();
     }
-    println(); println();
-  }
-  else if (key == '/') {
+    println(); 
+    println();
+  } else if (key == '/') {
     isUseBlue = !isUseBlue;
     println ("isUseBlue = "+ isUseBlue);
   }
@@ -1220,8 +1199,7 @@ public void toggleDrawing() {
   flockIsDrawing = !flockIsDrawing;
   if (flockIsDrawing) {
     startDrawing();
-  }
-  else {
+  } else {
     stopDrawing();
   }
 }
@@ -1258,9 +1236,9 @@ public void drawOffscreen(PGraphics pg) {
   pg.background(255);
   /*
     for (Boid tBoid : flock.getBoids()) {
-    Turtle t = ((TurtleBoid) tBoid).getTurtle();
-    t.draw(pg);
-    }
+   Turtle t = ((TurtleBoid) tBoid).getTurtle();
+   t.draw(pg);
+   }
    */
   // order trails by the index of the trail
   int mostTrails = 0;
@@ -1329,7 +1307,7 @@ float kk = kappa;
  * @param farb             fill color for blob
  */
 public BezShape createBlob(int sectors, float rad, float sectorVariance, float curveVariance, 
-    float radiusVariance, float rot, float dx, float dy, int farb) {
+  float radiusVariance, float rot, float dx, float dy, int farb) {
   float[] sects = new float[sectors];
   float sum = 0;
   // fill the sects array with a series of increasing numbers at a nearly uniform 
@@ -1373,8 +1351,7 @@ public BezShape createBlob(int sectors, float rad, float sectorVariance, float c
     if (i != sectors - 1) {
       rfac = (float) rando.quickGauss(1, radiusVariance);
       r = rad * rfac;
-    } 
-    else {
+    } else {
       r = r0;
     }
     // second control point
@@ -1430,7 +1407,7 @@ public float[] reapportion(float[] series, float range) {
  * @return   a string in the format yymmdd_hhmmss
  */
 public String getTimestamp() {
-  return nf(year(),2).substring(2, 4) +  nf(month(),2) + nf(day(),2) +"_"+ nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+  return nf(year(), 2).substring(2, 4) +  nf(month(), 2) + nf(day(), 2) +"_"+ nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
 }
 
 
@@ -1457,15 +1434,15 @@ public void saveAI(String filename) {
   bgLayer.setLocked(true);
   // begin adding components to boidsLayer
   LayerComponent boidsLayer = new LayerComponent(this, "boids");
-/*    
-// The layering used here puts trails from each boid into its own group, not the same as the display.
-  // The getTrails() method returns a turtle's trails, saved and current, bundled into a GroupComponent.
-  // The GroupComponent can be added to a DocumentComponent, LayerComponent, or another GroupComponent
-  for (Boid tBoid : flock.getBoids()) {
-    Turtle t = ((TurtleBoid) tBoid).getTurtle();
-    boidsLayer.add(t.getTrails());
-  }
-*/    
+  /*    
+   // The layering used here puts trails from each boid into its own group, not the same as the display.
+   // The getTrails() method returns a turtle's trails, saved and current, bundled into a GroupComponent.
+   // The GroupComponent can be added to a DocumentComponent, LayerComponent, or another GroupComponent
+   for (Boid tBoid : flock.getBoids()) {
+   Turtle t = ((TurtleBoid) tBoid).getTurtle();
+   boidsLayer.add(t.getTrails());
+   }
+   */
   // here we send trails to groups determined by the index of the trail, more like what happens in the display
   int mostTrails = 0;
   for (Boid tBoid : flock.getBoids()) {
@@ -1798,13 +1775,11 @@ public void controlEvent(ControlEvent evt) {
     if (useFactors) {
       n2.lock();
       n3.lock();
-    }
-    else {
+    } else {
       n2.unlock();
       n3.unlock();
     }
-  }
-  else if (evt.isController() && evt.getController().getName().equals("devicelist")) {
+  } else if (evt.isController() && evt.getController().getName().equals("devicelist")) {
     int index = (int) evt.getController().getValue();
     String[] devices = getVideoDevices();
     // name=Built-in iSight,size=320x240,fps=30
@@ -1829,24 +1804,22 @@ public void controlEvent(ControlEvent evt) {
     int grid = w/40;
     println("grid = "+ grid);
     float predictionSeconds = 0.25f * 30.0f/framerate;
-    setupVideo(w, h, framerate, grid, predictionSeconds, deviceName);   
-  }
-  else if (evt.isController() && evt.getController().getName().equals("statelist")) {
+    setupVideo(w, h, framerate, grid, predictionSeconds, deviceName);
+  } else if (evt.isController() && evt.getController().getName().equals("statelist")) {
     selectedBoidState = (int) evt.getController().getValue();
     selectedBoidState = (selectedBoidState) % boidStateList.size();
     assignBoidState(selectedBoidState, 1f);
     println("selectedBoidState: "+ selectedBoidState);
-    
   }
   // debugging
   /*
   if (evt.isGroup()) {
-    println(evt.getGroup().getValue() +" from group "+ evt.getGroup() +"with name "+ evt.getGroup().getName());
-  }
-  else if (evt.isController()) {
-    println(evt.getController().getValue() +" from controller "+ evt.getController() +"with name "+ evt.getController().getName());
-  }
-  */
+   println(evt.getGroup().getValue() +" from group "+ evt.getGroup() +"with name "+ evt.getGroup().getName());
+   }
+   else if (evt.isController()) {
+   println(evt.getController().getValue() +" from controller "+ evt.getController() +"with name "+ evt.getController().getName());
+   }
+   */
 }
 
 /**
@@ -1890,9 +1863,9 @@ public void subtractBoids() {
 public void newBoids() {
   ArrayList<Boid> boids = flock.getBoids();
   boids.clear();
-//    for (int i = 0; i < totalBoids; i++) {
-//      addOneBoid(random(0, width), random(0, height));
-//    }   
+  //    for (int i = 0; i < totalBoids; i++) {
+  //      addOneBoid(random(0, width), random(0, height));
+  //    }   
   initBoids();
   Textlabel l7 = (Textlabel) controlP5.getController("totalBoidsLabel");
   l7.setValue("Total boids: " + totalBoids);
@@ -1909,13 +1882,13 @@ public void erase() {
 }
 
 public void bgErase() {
-  drawOffscreen(pg);  
+  drawOffscreen(pg);
 }
 // TODO fix drawOffscreen to use opacity
 public void bgErase(int opacity) {
-  drawOffscreen(pg);  
+  drawOffscreen(pg);
 }
-  
+
 /**
  * Pauses draw method.
  */
@@ -2066,7 +2039,7 @@ class Responder implements BoidCallbackINF {
    * @see com.ignofactory.steering.BoidCallbackINF#callback(com.ignofactory.steering.Boid)
    */
   @Override
-  public void callback(Boid tBoid) {
+    public void callback(Boid tBoid) {
     /* if (tBoid instanceof TurtleBoid) println("it's a turtle boid"); */
     // NOTE: a penUp() was issued before we arrived here
     // followed by a conditional pen down, if the turtle was drawing
@@ -2085,7 +2058,7 @@ class Responder implements BoidCallbackINF {
     if (stopOnEdge) t.penUp();
     /*  println("call back from TurtleBoid id "+ ((TurtleBoid)tBoid).id +" with hue "+ targHue); */
   }
-  
+
   public void stepColor(Boid tBoid, Turtle t, float stepSize) {
     int tbStrokeColor = t.strokeColor();
     colorMode(HSB, 360, 100, 100);
@@ -2123,7 +2096,7 @@ class VideoResponder implements VideoCallbackINF {
   boolean isMaxState = false;
 
   @Override
-  public void videoCallback(Capture video) {
+    public void videoCallback(Capture video) {
     // get the video image, give it an alpha channel and draw it on our display
     background(pg);
     PImage img = loadImageAlpha(video.get(), 80);
@@ -2134,12 +2107,12 @@ class VideoResponder implements VideoCallbackINF {
   }
 
   @Override
-  public void vectorCallback(Capture video) {
+    public void vectorCallback(Capture video) {
     drawVectorLines();
   }
-  
+
   @Override
-  public void actionCallback(Capture video) {
+    public void actionCallback(Capture video) {
     if (skipAction) return;
     float flowRate = optical.getTotalFlowSquareMagAv();
     if (flowRate < minTrigger && !isMinState) {
@@ -2147,8 +2120,7 @@ class VideoResponder implements VideoCallbackINF {
       isMinState = true;
       isMaxState = false;
       println("-------- min state --------");
-    } 
-    else if (flowRate > maxTrigger && !isMaxState) {
+    } else if (flowRate > maxTrigger && !isMaxState) {
       decode('a');
       isMaxState = true;
       isMinState = false;
@@ -2156,76 +2128,50 @@ class VideoResponder implements VideoCallbackINF {
     }
     /*
     if (flowRate < flowMin) {
-      flowMin = flowRate;
-      println("flowMin = "+ flowMin);
-    }
-    else if (flowRate > flowMax) {
-      flowMax = flowRate;
-      println("flowMax = "+ flowMax);
-    }
-    */
+     flowMin = flowRate;
+     println("flowMin = "+ flowMin);
+     }
+     else if (flowRate > flowMax) {
+     flowMax = flowRate;
+     println("flowMax = "+ flowMax);
+     }
+     */
     /* */
-    // trigger call to setSeparation() by setting the number box, avoid recursion
-    Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
-    float mag1 = optical.getFlow(btn1).mag();
-    float mag2 = optical.getFlow(btn2).mag();
-    float mag3 = optical.getFlow(btn3).mag();
-    float mag4 = optical.getFlow(btn4).mag();
-    int now = millis();
-    // top left
-    if (mag1 > actionThreshold) {
-      markGrid((int)btn1.x, (int)btn1.y, color1);
-      if (now - evtTimer1 > evtDebounce) {
-        // perform an action and reset the timer
-        if (totalBoids < maxBoids) addBoids();
-        evtTimer1 = now;          
-      } 
-    }
-    /*
-    else {
-      markGrid((int)btn1.x, (int)btn1.y, inactive);       
-    }
-    // bottom left
-    if (mag2 > actionThreshold) {
-      markGrid((int)btn2.x, (int)btn2.y, color2);
-      if (now - evtTimer2 > evtDebounce) {
-        // perform an action and reset the timer
-        bgErase(64);
-        evtTimer2 = now;          
+    if (isUseButtons) {
+      // trigger call to setSeparation() by setting the number box, avoid recursion
+      // Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
+      float mag1 = optical.getFlow(btn1).mag();
+      //float mag2 = optical.getFlow(btn2).mag();
+      //float mag3 = optical.getFlow(btn3).mag();
+      float mag4 = optical.getFlow(btn4).mag();
+      int now = millis();
+      // top left
+      if (mag1 > actionThreshold) {
+        markGrid((int)btn1.x, (int)btn1.y, color1);
+        if (now - evtTimer1 > evtDebounce) {
+          // perform an action and reset the timer
+          if (totalBoids < maxBoids) addBoids();
+          evtTimer1 = now;
+        }
+      } else {
+        markGrid((int)btn1.x, (int)btn1.y, inactive);
       }
-    }
-    else {
-      markGrid((int)btn2.x, (int)btn2.y, inactive);
-    }
-    // bottom right
-    if (mag3 > actionThreshold) {
-      markGrid((int)btn3.x, (int)btn3.y, color3);
-      if (now - evtTimer3 > evtDebounce) {
-        // perform an action and reset the timer
-        decode('a');
-        evtTimer3 = now;          
+      // top right
+      if (mag4 > actionThreshold) {
+        markGrid((int)btn4.x, (int)btn4.y, color4);   
+        if (now - evtTimer4 > evtDebounce) {
+          // perform an action and reset the timer
+          if (totalBoids > minBoids) subtractBoids();
+          evtTimer4 = now;
+        }
+      } else {
+        markGrid((int)btn4.x, (int)btn4.y, inactive);
       }
+      adjustFlock();
     }
-    else {
-      markGrid((int)btn2.x, (int)btn2.y, inactive);
-    }
-    */
-    // top right
-    if (mag4 > actionThreshold) {
-      markGrid((int)btn4.x, (int)btn4.y, color4);   
-      if (now - evtTimer4 > evtDebounce) {
-        // perform an action and reset the timer
-        if (totalBoids > minBoids) subtractBoids();
-        evtTimer4 = now;          
-      }
-    }
-    else {
-      markGrid((int)btn4.x, (int)btn4.y, inactive);               
-    }
-    adjustFlock();
     /* */
   }
-  
+
   public void markGrid(int x, int y, int fillColor) {
     // find the grid
     ellipseMode(PApplet.CENTER);
@@ -2233,7 +2179,6 @@ class VideoResponder implements VideoCallbackINF {
     fill(fillColor);
     ellipse(x, y, 20, 20);
   }
-  
 }
 
 // still some problems working with boids -- flickering
@@ -2263,19 +2208,19 @@ public void drawVectorLines(PGraphics offscreen) {
     float y0 = vy[i];
     /*
     if (i % rowCount == 0 || i % rowCount == rowCount - 1
-        || i < rowCount || i > vec.length - rowCount) {
-      offscreen.stroke(color(233, 0, 89, 255));
-      offscreen.fill(color(233, 0, 89, 255));
-      // offscreen.ellipse(x0 * hs, y0 * vs, 5, 5);
-      offscreen.ellipse(x0, y0 * vs, 5, 5);
-    }
-    else {
-      offscreen.stroke(color(55, 55, 89, 255));
-    }
-    */
+     || i < rowCount || i > vec.length - rowCount) {
+     offscreen.stroke(color(233, 0, 89, 255));
+     offscreen.fill(color(233, 0, 89, 255));
+     // offscreen.ellipse(x0 * hs, y0 * vs, 5, 5);
+     offscreen.ellipse(x0, y0 * vs, 5, 5);
+     }
+     else {
+     offscreen.stroke(color(55, 55, 89, 255));
+     }
+     */
     offscreen.stroke(color(55, 55, 89, 255));
     float a = PApplet.sqrt(u * u + v * v);
-    if(a >= 2.0) {
+    if (a >= 2.0) {
       // offscreen.line(x0, y0, x0 + u * flowScale, y0 + v * flowScale);
       offscreen.line(x0, y0 * vs, x0 + u * flowScale, y0 * vs + v * flowScale);
       // offscreen.line(x0, y0, x0 + u * hs, y0 + v * vs);
@@ -2306,7 +2251,7 @@ public void drawVectorLines() {
     float x0 = vx[i];
     float y0 = vy[i];
     float a = PApplet.sqrt(u * u + v * v);
-    if(a >= 2.0) {
+    if (a >= 2.0) {
       line(x0, y0 * vs, x0 + u * flowScale, y0 * vs + v * flowScale * vs);
     }
   }
@@ -2328,7 +2273,7 @@ public void drawVectorEllipses() {
     float x0 = vx[i];
     float y0 = vy[i];
     float a = PApplet.sqrt(u * u + v * v);
-    if(a >= 2.0) {
+    if (a >= 2.0) {
       ellipse(x0, y0, a, a);
     }
   }
@@ -2342,12 +2287,11 @@ class BoidState {
   public int align;
   public int coh;
   public String name;
-  
+
   public BoidState(int _sep, int _align, int _coh, String _name) {
     this.sep = _sep;
     this.align = _align;
     this.coh = _coh;
     this.name = _name;
-  }   
+  }
 }
-  
