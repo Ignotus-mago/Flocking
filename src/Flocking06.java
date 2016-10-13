@@ -22,7 +22,7 @@ import processing.video.*;
  * Using Processing 2 in Eclipse, but this will change to 3.x. Files in ProcessingDemo folder in this project
  * will run under Processing 3.x. 
  * 
- * Sixth version of flocking application. 
+ * Seventh version of flocking application, for gallery installation. 
  * Based on Flocking, by Daniel Shiffman <http://www.shiffman.net>, in The Nature of Code, Spring 2009.
  * Demonstration of Craig Reynolds' "Flocking" behavior, See: http://www.red3d.com/cwr/.
  * Rules: Cohesion, Separation, Alignment
@@ -141,7 +141,10 @@ public class Flocking06 extends PApplet {
 	float mass;
 	float weight = 1.5f;
 	int numberOfBoids = 8;
-	int totalBoids = 23;
+	int totalBoids = 233;
+	int meanBoids = 233;
+	int maxBoids = 1024;
+	int minBoids = 28;
 	boolean isPaused = false;
 	boolean isShowBoids = true;
 	boolean isShowVideo = true;
@@ -219,7 +222,6 @@ public class Flocking06 extends PApplet {
 		flock = new Flock();                   // Add an initial set of boids into the system
 		flockIsDrawing = true;
 		flockIsDisplaying = true;
-		totalBoids = 233;
 		initBoidStateList();                   // create up a menu of different sets of cohesion, separation, and alignment values
 		// assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 0.8f);
 		// start out with specific separation, alignment and cohesion values for boids
@@ -876,6 +878,14 @@ public class Flocking06 extends PApplet {
 			}
 			else if (rand < 0.5f) {
 				assignBoidState(rando.randomInRange(0, boidStateList.size() - 1), 1f);
+			}
+			else if (rand < 0.33) {
+				if (totalBoids > meanBoids) {
+					subtractBoids();
+				}
+				else if (totalBoids < meanBoids) {
+					addBoids();
+				}
 			}
 		}
 	}
@@ -2113,11 +2123,9 @@ public class Flocking06 extends PApplet {
 		PVector btn4 = new PVector(width - inset, inset);              // top right
 		int color1 = color(233, 89, 55);              // red (top left button)
 		int color2 = color(55, 233, 144);             // green (bottom left button)
-		int color3 = color(55, 21, 233);              // blue (top right button)
-		int color4 = color(220, 165, 55);             // yellow (bottom right button)
+		int color3 = color(220, 165, 55);             // yellow (bottom right button)
+		int color4 = color(55, 21, 233);              // blue (top right button)
 		int inactive = color(216, 216, 216, 192);     // gray (inactive state)
-		int maxBoids = 1024;
-		int minBoids = 8;
 		float flowMin = 999999999f;
 		float flowMax = 0;
 		float minTrigger = 1.0f;
@@ -2167,7 +2175,7 @@ public class Flocking06 extends PApplet {
 				println("flowMax = "+ flowMax);
 			}
 			*/
-			/*
+			/* */
 			// trigger call to setSeparation() by setting the number box, avoid recursion
 			Numberbox n1 = (Numberbox) controlP5.getController("setSeparation");
 			float mag1 = optical.getFlow(btn1).mag();
@@ -2184,6 +2192,7 @@ public class Flocking06 extends PApplet {
 					evtTimer1 = now;					
 				} 
 			}
+			/*
 			else {
 				markGrid((int)btn1.x, (int)btn1.y, inactive);				
 			}
@@ -2211,6 +2220,7 @@ public class Flocking06 extends PApplet {
 			else {
 				markGrid((int)btn2.x, (int)btn2.y, inactive);
 			}
+			*/
 			// top right
 			if (mag4 > actionThreshold) {
 				markGrid((int)btn4.x, (int)btn4.y, color4);		
@@ -2224,7 +2234,7 @@ public class Flocking06 extends PApplet {
 				markGrid((int)btn4.x, (int)btn4.y, inactive);								
 			}
 			adjustFlock();
-			*/
+			/* */
 		}
 		
 		public void markGrid(int x, int y, int fillColor) {
