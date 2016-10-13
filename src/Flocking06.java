@@ -120,7 +120,7 @@ public class Flocking06 extends PApplet {
 
 	Flock flock;
 	boolean flockIsDrawing;
-	boolean flockIsDisplaying;
+	boolean flockIsDisplaying = true;
 	RandUtil rando;
 	int targetHue = 60;
 	BoidCallbackINF responder;
@@ -144,7 +144,7 @@ public class Flocking06 extends PApplet {
 	int totalBoids = 23;
 	boolean isPaused = false;
 	boolean isShowBoids = true;
-	boolean isShowVideo = false;
+	boolean isShowVideo = true;
 	boolean isVideoReady = false;
 	float avoidance;
 	// wind parameters
@@ -289,6 +289,12 @@ public class Flocking06 extends PApplet {
 		else {
 			optical.setFlowColor(color(233, 220, 199, 127));
 			optical.setImageFlowColor(color(144, 110, 233, 255));
+			if (isShowVideo) {
+				optical.showImage();
+			}
+			else {
+				optical.hideImage();
+			}
 			videoResponder = new VideoResponder();
 			optical.setResponder(videoResponder);
 		}
@@ -1904,11 +1910,10 @@ public class Flocking06 extends PApplet {
 	}
 	
 	public void bgErase() {
-		pg.background(255);
 		drawOffscreen(pg);	
 	}
+	// TODO fix drawOffscreen to use opacity
 	public void bgErase(int opacity) {
-		pg.background(255, opacity);
 		drawOffscreen(pg);	
 	}
 		
@@ -2116,7 +2121,7 @@ public class Flocking06 extends PApplet {
 		float flowMin = 999999999f;
 		float flowMax = 0;
 		float minTrigger = 1.0f;
-		float maxTrigger = 20.0f;
+		float maxTrigger = 5.0f;
 		boolean isMinState = false;
 		boolean isMaxState = false;
 
